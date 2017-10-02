@@ -86,7 +86,7 @@ extern "C" {
      * independant as the test suite will be sorted before it is run. If testName is the
      * same as an existing test case, the new function will be added to that test case.
      */
-    void kss_testing_add(const char* testName, void (*testFn)());
+    void kss_testing_add(const char* testName, void (*testFn)(void));
 
     /**
      * Clear all the tests from the test suite.
