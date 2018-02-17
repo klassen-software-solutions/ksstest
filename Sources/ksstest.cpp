@@ -45,6 +45,19 @@ static size_t       PRINTED_DOTS = 0;
 static size_t       MAX_DOTS = 80;
 
 
+// Used to handle the optional "beforeAll" and "afterAll" C++ items.
+#if !defined(__cplusplus)
+static inline void perform_before_all(const char* testName) {}
+static inline void perform_after_all(const char* testName) {}
+static inline void perform_cpp_cleanup() {}
+#else
+namespace {
+	void perform_before_all(const char* testName);
+	void perform_after_all(const char* testName);
+	void perform_cpp_cleanup() noexcept;
+}
+#endif
+
 // Used to pad lines for a consistent appearance.
 static void create_dot_padding(char* buf) {
     size_t ii = 0;
@@ -101,6 +114,7 @@ void kss_testing_add(const char* testName, void (*testFn)()) {
 // Clear all the test cases.
 void kss_testing_clear(void) {
     testSuiteN = 0;
+	perform_cpp_cleanup();
 }
 
 // Flush the current output.
@@ -111,6 +125,7 @@ static void flush_output(size_t* failedTests) {
     if (CURRENT_TC->skipThisTest)
         return;
 
+	perform_after_all(CURRENT_TC->testName);
     if (!CURRENT_TC->numberOfFailures) {
         char dot_padding[MAX_DOTS+1];
         create_dot_padding(dot_padding);
@@ -191,8 +206,9 @@ static int testing_run_fn(const char* testSuiteName, int isQuiet, int isVerbose,
             tc->skipThisTest = 1;
 
         if (!CURRENT_TC || strcmp(CURRENT_TC->testName, tc->testName)) {
-            if (CURRENT_TC)
+			if (CURRENT_TC) {
                 flush_output(&failedTests);
+			}
             if (!quiet && !tc->skipThisTest) {
                 if (verbose) {
                     MAX_DOTS = 80 - strlen(tc->testName) - 1;
@@ -201,6 +217,7 @@ static int testing_run_fn(const char* testSuiteName, int isQuiet, int isVerbose,
                 else {
                     printf(testNameFormat, tc->testName);
                 }
+				perform_before_all(tc->testName);
             }
             CURRENT_TC = tc;
             PRINTED_DOTS = 0;
@@ -369,6 +386,7 @@ void _kss_testing_group(const char* name) {
 #include <exception>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 
 #include <cxxabi.h>
 #include <signal.h>
@@ -376,6 +394,7 @@ void _kss_testing_group(const char* name) {
 #include <sys/wait.h>
 
 using namespace std;
+using namespace kss::testing;
 
 static void my_signal_handler(int sig) {
 }
@@ -425,6 +444,52 @@ string kss::testing::_test_build_exception_desc(const std::exception &e) {
     ostringstream os;
     os << exceptionName << " (" << e.what() << ") thrown by ";
     return os.str();
+}
+
+// Handle the optional beforeAll and afterAll code for a test set.
+namespace {
+	typedef unordered_map<string, function<void(void)>> callback_map_t;
+	static callback_map_t beforeAllCBs;
+	static callback_map_t afterAllCBs;
+
+	void perform(const string& performType, const callback_map_t& callbacks, const string& testName) {
+		const auto it = callbacks.find(testName);
+		if (it != callbacks.end()) {
+			if (verbose) printf("\n%s%s", groupPadding, performType.c_str());
+			it->second();
+		}
+	}
+
+	void perform_before_all(const char* testName) {
+		perform("beforeAll", beforeAllCBs, testName);
+	}
+
+	void perform_after_all(const char* testName) {
+		perform("afterAll", afterAllCBs, testName);
+	}
+
+	void perform_cpp_cleanup() noexcept {
+		beforeAllCBs.clear();
+		afterAllCBs.clear();
+	}
+}
+
+void TestSet::add_before_all() {
+	beforeAllCBs[_testName] = [this] {
+		this->beforeAll();
+	};
+}
+
+void TestSet::add_after_all() {
+	afterAllCBs[_testName] = [this] {
+		this->afterAll();
+	};
+}
+
+
+// Handle the addition of a test.
+void TestSet::add_test(test_fn fn) const noexcept {
+	kss_testing_add(_testName.c_str(), fn);
 }
 
 

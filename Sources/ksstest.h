@@ -180,7 +180,8 @@ namespace kss {
          Macro used to test that no exception is thrown by an expression.
          */
 #       define KSS_ASSERT_NOEXCEPTION(expr) { bool _caught=false; std::string _exdesc("unknown exception thrown by "); try { expr; } catch(std::exception& e) { _caught=true; _exdesc=kss::testing::_test_build_exception_desc(e); } catch(...) { _caught=true; } ((void) (!_caught ? _kss_testing_success() : _kss_testing_failure((_exdesc + #expr).c_str(), __FILE__, __LINE__))); } ((void) true)
-        
+
+
         /*!
          The TestSet class is used to provide a nicer way for C++ to add tests to this
          framework. In particular it makes use of the fact that static constructors in C++
@@ -218,6 +219,10 @@ namespace kss {
          This will result in kss_testing_add("my_tests", ...) being called three times with
          the appropriate function pointer. (The underlying C can handle the lambdas so long
          as they require no arguments and contain no references to their context.)
+
+		 Starting with V4.2 the TestSet may be subclassed in order to add code that is
+		 run before and after the test set and before and after each test in the test set.
+		 Note that all of these are optional.
          */
         class TestSet {
         public:
@@ -228,14 +233,39 @@ namespace kss {
              test set instances must be declared statically.
              */
             explicit TestSet(const std::string& testName, std::initializer_list<test_fn> fns) : _testName(testName) {
+				add_before_all();
+				add_after_all();
                 for (const auto& fn : fns) {
                     add_test(fn);
                 }
             }
 
+			virtual ~TestSet() noexcept {
+			}
+
+			// TestSets are intended ot be static and should not be moved or copied.
+			TestSet(const TestSet&) = delete;
+			TestSet(TestSet&&) = delete;
+			TestSet& operator=(const TestSet&) = delete;
+			TestSet& operator=(TestSet&&) = delete;
+
+			/*!
+			 Override this to run code before any of the tests in this test suite are run.
+			 */
+			virtual void beforeAll() {}
+
+			/*!
+			 Override this to run code after all of the tests in this test suite have
+			 completed.
+			 */
+			virtual void afterAll() {}
+
         private:
             std::string _testName;
-            void add_test(test_fn fn) { kss_testing_add(_testName.c_str(), fn); }
+
+			void add_test(test_fn fn) const noexcept;
+			void add_before_all();
+			void add_after_all();
         };
     }
 }

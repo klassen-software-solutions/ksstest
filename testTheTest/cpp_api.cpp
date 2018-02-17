@@ -12,7 +12,7 @@
 #include <stdexcept>
 
 using namespace std;
-using kss::testing::TestSet;
+using namespace kss::testing;
 
 namespace {
 	void function_that_does_throw() {
@@ -34,5 +34,38 @@ static TestSet ts("basic C++ tests", {
 		KSS_ASSERT(i > 10);
 		KSS_ASSERT_EXCEPTION(function_that_does_throw(), runtime_error);
 		KSS_ASSERT_NOEXCEPTION(function_that_does_not_throw());
+	}
+});
+
+
+class MyExtendedTestSet : public TestSet {
+public:
+	explicit MyExtendedTestSet(const string& testName, initializer_list<test_fn> fns)
+	: TestSet(testName, fns)
+	{}
+
+	virtual void beforeAll() override {
+		++beforeAllCallCount;
+	}
+
+	virtual void afterAll() override {
+		++afterAllCallCount;
+	}
+
+	int beforeAllCallCount = 0;
+	int afterAllCallCount = 0;
+};
+
+static MyExtendedTestSet mets("extended C++ tests", {
+	[]{
+		KSS_TEST_GROUP("group1");
+	}
+});
+
+static TestSet afterMets("zzz extended C++ test results", {
+	[]{
+		KSS_TEST_GROUP("examining extended results");
+		KSS_ASSERT(mets.beforeAllCallCount == 1);
+		KSS_ASSERT(mets.afterAllCallCount == 1);
 	}
 });
