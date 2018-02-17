@@ -446,44 +446,41 @@ string kss::testing::_test_build_exception_desc(const std::exception &e) {
     return os.str();
 }
 
-// Handle the optional beforeAll and afterAll code for a test set.
+// Handle the optional beforeAll and afterAll code for a test set. Note that we don't
+// have the ability (yet) to determine if beforeAll and afterAll have actually been
+// provided. But by checking if they have been subclassed we can at least rule out
+// the cases where just a "normal" TestSet is used.
 namespace {
-	typedef unordered_map<string, function<void(void)>> callback_map_t;
-	static callback_map_t beforeAllCBs;
-	static callback_map_t afterAllCBs;
+	static unordered_map<string, TestSet*> testSetMap;
 
-	void perform(const string& performType, const callback_map_t& callbacks, const string& testName) {
-		const auto it = callbacks.find(testName);
-		if (it != callbacks.end()) {
-			if (verbose) printf("\n%s%s", groupPadding, performType.c_str());
-			it->second();
-		}
+	bool is_subclassed(const TestSet* ts) noexcept {
+		const TestSet& tsr = *ts;
+		return (typeid(tsr) != typeid(TestSet));
 	}
 
 	void perform_before_all(const char* testName) {
-		perform("beforeAll", beforeAllCBs, testName);
+		const auto it = testSetMap.find(testName);
+		if (it != testSetMap.end() && is_subclassed(it->second)) {
+			if (verbose) printf("\n%sbeforeAll", groupPadding);
+			it->second->beforeAll();
+		}
 	}
 
 	void perform_after_all(const char* testName) {
-		perform("afterAll", afterAllCBs, testName);
+		const auto it = testSetMap.find(testName);
+		if (it != testSetMap.end() && is_subclassed(it->second)) {
+			if (verbose) printf("\n%safterAll", groupPadding);
+			it->second->afterAll();
+		}
 	}
 
 	void perform_cpp_cleanup() noexcept {
-		beforeAllCBs.clear();
-		afterAllCBs.clear();
+		testSetMap.clear();
 	}
 }
 
-void TestSet::add_before_all() {
-	beforeAllCBs[_testName] = [this] {
-		this->beforeAll();
-	};
-}
-
-void TestSet::add_after_all() {
-	afterAllCBs[_testName] = [this] {
-		this->afterAll();
-	};
+void TestSet::register_instance() {
+	testSetMap[_testName] = this;
 }
 
 

@@ -233,8 +233,7 @@ namespace kss {
              test set instances must be declared statically.
              */
             explicit TestSet(const std::string& testName, std::initializer_list<test_fn> fns) : _testName(testName) {
-				add_before_all();
-				add_after_all();
+				register_instance();
                 for (const auto& fn : fns) {
                     add_test(fn);
                 }
@@ -264,8 +263,7 @@ namespace kss {
             std::string _testName;
 
 			void add_test(test_fn fn) const noexcept;
-			void add_before_all();
-			void add_after_all();
+			void register_instance();
         };
     }
 }
