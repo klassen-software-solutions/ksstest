@@ -3,7 +3,9 @@
 //  cckss
 //
 //  Created by Steven W. Klassen on 2011-10-22.
-//  Copyright (c) 2011 Klassen Software Solutions. All rights reserved.
+//  Copyright (c) 2011 Klassen Software Solutions. All rights reserved.  This code may
+//    be used/modified/redistributed without restriction or attribution. It comes with no
+//    warranty or promise of suitability.
 //
 
 #include <assert.h>

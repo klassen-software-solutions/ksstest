@@ -7,17 +7,55 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA6684512038A6F700819C6A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA6684502038A6F700819C6A /* main.cpp */; };
+		AA6684582038A95200819C6A /* libksstest.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA40F121F3CAAF2005D181B /* libksstest.dylib */; };
+		AA66845A2038A97F00819C6A /* c_api.c in Sources */ = {isa = PBXBuildFile; fileRef = AA6684592038A97F00819C6A /* c_api.c */; };
+		AA66845C2038AB7300819C6A /* cpp_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA66845B2038AB7300819C6A /* cpp_api.cpp */; };
 		AAA40F241F3CED7E005D181B /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAA40F221F3CED7E005D181B /* ksstest.cpp */; };
 		AAA40F251F3CED7E005D181B /* ksstest.h in Headers */ = {isa = PBXBuildFile; fileRef = AAA40F231F3CED7E005D181B /* ksstest.h */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		AA6684552038A94C00819C6A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AAA40F0A1F3CAAF2005D181B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AAA40F111F3CAAF2005D181B;
+			remoteInfo = ksstest;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA66844C2038A6F700819C6A /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		AA66844E2038A6F700819C6A /* testTheTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testTheTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA6684502038A6F700819C6A /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		AA6684592038A97F00819C6A /* c_api.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = c_api.c; sourceTree = "<group>"; };
+		AA66845B2038AB7300819C6A /* cpp_api.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpp_api.cpp; sourceTree = "<group>"; };
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAA40F221F3CED7E005D181B /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
 		AAA40F231F3CED7E005D181B /* ksstest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksstest.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		AA66844B2038A6F700819C6A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA6684582038A95200819C6A /* libksstest.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AAA40F0F1F3CAAF2005D181B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -28,11 +66,30 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA66844F2038A6F700819C6A /* testTheTest */ = {
+			isa = PBXGroup;
+			children = (
+				AA6684592038A97F00819C6A /* c_api.c */,
+				AA66845B2038AB7300819C6A /* cpp_api.cpp */,
+				AA6684502038A6F700819C6A /* main.cpp */,
+			);
+			path = testTheTest;
+			sourceTree = "<group>";
+		};
+		AA6684572038A95200819C6A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
 				AAA40F191F3CAC04005D181B /* Sources */,
+				AA66844F2038A6F700819C6A /* testTheTest */,
 				AAA40F131F3CAAF2005D181B /* Products */,
+				AA6684572038A95200819C6A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -40,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				AAA40F121F3CAAF2005D181B /* libksstest.dylib */,
+				AA66844E2038A6F700819C6A /* testTheTest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,6 +125,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		AA66844D2038A6F700819C6A /* testTheTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA6684542038A6F700819C6A /* Build configuration list for PBXNativeTarget "testTheTest" */;
+			buildPhases = (
+				AA66844A2038A6F700819C6A /* Sources */,
+				AA66844B2038A6F700819C6A /* Frameworks */,
+				AA66844C2038A6F700819C6A /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA6684562038A94C00819C6A /* PBXTargetDependency */,
+			);
+			name = testTheTest;
+			productName = testTheTest;
+			productReference = AA66844E2038A6F700819C6A /* testTheTest */;
+			productType = "com.apple.product-type.tool";
+		};
 		AAA40F111F3CAAF2005D181B /* ksstest */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AAA40F161F3CAAF2005D181B /* Build configuration list for PBXNativeTarget "ksstest" */;
@@ -93,6 +169,11 @@
 				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Klassen Software Solutions";
 				TargetAttributes = {
+					AA66844D2038A6F700819C6A = {
+						CreatedOnToolsVersion = 9.2;
+						DevelopmentTeam = 23FN26LWBV;
+						ProvisioningStyle = Automatic;
+					};
 					AAA40F111F3CAAF2005D181B = {
 						CreatedOnToolsVersion = 8.3.3;
 						DevelopmentTeam = 23FN26LWBV;
@@ -113,11 +194,22 @@
 			projectRoot = "";
 			targets = (
 				AAA40F111F3CAAF2005D181B /* ksstest */,
+				AA66844D2038A6F700819C6A /* testTheTest */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		AA66844A2038A6F700819C6A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA66845C2038AB7300819C6A /* cpp_api.cpp in Sources */,
+				AA66845A2038A97F00819C6A /* c_api.c in Sources */,
+				AA6684512038A6F700819C6A /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AAA40F0E1F3CAAF2005D181B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -128,7 +220,43 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		AA6684562038A94C00819C6A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AAA40F111F3CAAF2005D181B /* ksstest */;
+			targetProxy = AA6684552038A94C00819C6A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		AA6684522038A6F700819C6A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 23FN26LWBV;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AA6684532038A6F700819C6A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 23FN26LWBV;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		AAA40F141F3CAAF2005D181B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -255,6 +383,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AA6684542038A6F700819C6A /* Build configuration list for PBXNativeTarget "testTheTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA6684522038A6F700819C6A /* Debug */,
+				AA6684532038A6F700819C6A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		AAA40F0D1F3CAAF2005D181B /* Build configuration list for PBXProject "ksstest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

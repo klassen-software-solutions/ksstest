@@ -1,6 +1,5 @@
 //
 //  ksstest.h
-//  version: 4.1 - refactored to separate from the kssutil library
 //
 //  Created by Steven W. Klassen on 2011-10-22.
 //
@@ -25,8 +24,17 @@
 //  explicitly reference them in your main function. In C (at least in gcc and clang) you
 //  can declare a function with a constructor attribute to do much the same thing. For example,
 //
+//	   static void test1Fn() {
+//         KSS_TEST_GROUP("group1");
+//         ... assertions go here ...
+//     }
+//
+//     static void test2Fn() {
+//         KSS_TEST_GROUP("group2");
+//         ... assertions go here ...
+//     }
+//
 //     void __attribute__ ((constructor)) add_local_tests() {
-//         KSS_TEST_GROUP("my local group");
 //         kss_testing_add("test 1", test1Fn);
 //         kss_testing_add("test 2", test2Fn);
 //     }
@@ -38,7 +46,7 @@
 //  LIMITATIONS
 //
 //  This library does not deal well with threads. Unit tests really should be small and
-//  separate enought that this isn't a problem, but if you really need to run multiple
+//  separate enough that this isn't a problem, but if you really need to run multiple
 //  threads, say to test client/server systems, it can be done but you may be better off
 //  with a more significant test structure.
 //
@@ -50,6 +58,18 @@
 //  directly), are of the form _kss_testing_...  Similarly in the C++ code, any symbol
 //  within kss::testing that starts with an underscore should be considered private and
 //  not called directly.
+//
+//  EXAMPLES
+//
+// 	The directory "testTheTest" provides example C and C++ code that I use to test the
+//	testing infrastructure.
+//
+//  HISTORY
+//
+//  V4.1 - refactored to separate from the kssutil library
+//	V4.1.1 - added testTheTest to allow the testing infrastructure to itself be tested.
+//
+//  V4.2 - significant improvements to the C++ api
 //
 
 
