@@ -41,6 +41,8 @@ static TestSet ts("basic C++ tests", {
 namespace {
 	int beforeAllCount = 0;
 	int afterAllCount = 0;
+	int beforeEachCount = 0;
+	int afterEachCount = 0;
 }
 
 class MyBeforeAllTestSet : public TestSet, public HasBeforeAll {
@@ -76,6 +78,14 @@ public:
 	virtual void afterAll() override {
 		++afterAllCount;
 	}
+
+	virtual void beforeEach() override {
+		++beforeEachCount;
+	}
+
+	virtual void afterEach() override {
+		++afterEachCount;
+	}
 };
 
 static MyAfterAllTestSet aats("extended C++ afterAll tests", {
@@ -99,6 +109,12 @@ static MyExtendedTestSet mets("extended C++ tests", {
 		KSS_TEST_GROUP("group1");
 		KSS_ASSERT(beforeAllCount == 2);
 		KSS_ASSERT(afterAllCount == 1);
+	},
+	[]{
+		KSS_TEST_GROUP("group2");
+	},
+	[]{
+		KSS_TEST_GROUP("group3");
 	}
 });
 
@@ -107,5 +123,7 @@ static TestSet afterMets("extended C++ zzz test results", {
 		KSS_TEST_GROUP("examining extended results");
 		KSS_ASSERT(beforeAllCount == 2);
 		KSS_ASSERT(afterAllCount == 2);
+		KSS_ASSERT(beforeEachCount == 3);
+		KSS_ASSERT(afterEachCount == 3);
 	}
 });

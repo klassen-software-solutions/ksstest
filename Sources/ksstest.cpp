@@ -49,11 +49,13 @@ static size_t       MAX_DOTS = 80;
 #if !defined(__cplusplus)
 static inline void perform_before_all(const char* testName) {}
 static inline void perform_after_all(const char* testName) {}
+static inline void perform_test_call(const char* testName, testFnPtr fn) { fn(); }
 static inline void perform_cpp_cleanup() {}
 #else
 namespace {
 	void perform_before_all(const char* testName);
 	void perform_after_all(const char* testName);
+	void perform_test_call(const char* testName, testFnPtr fn);
 	void perform_cpp_cleanup() noexcept;
 }
 #endif
@@ -226,8 +228,9 @@ static int testing_run_fn(const char* testSuiteName, int isQuiet, int isVerbose,
                 ++skippedTests;
         }
 
-        if (!tc->skipThisTest)
-            tc->testFn();
+		if (!tc->skipThisTest) {
+			perform_test_call(tc->testName, tc->testFn);
+		}
     }
     flush_output(&failedTests);
 
@@ -470,6 +473,18 @@ namespace {
 				if (verbose) printf("\n%safterAll", groupPadding);
 				haa->afterAll();
 			}
+		}
+	}
+
+	void perform_test_call(const char* testName, testFnPtr fn) {
+		const auto it = testSetMap.find(testName);
+		if (it == testSetMap.end()) {
+			fn();
+		}
+		else {
+			it->second->beforeEach();
+			fn();
+			it->second->afterEach();
 		}
 	}
 

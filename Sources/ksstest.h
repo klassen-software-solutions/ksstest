@@ -3,11 +3,13 @@
 //
 //  Created by Steven W. Klassen on 2011-10-22.
 //
+//
 //  COPYING
 //
 //  Copyright (c) 2011 Klassen Software Solutions. All rights reserved. This code may
 //    be used/modified/redistributed without restriction or attribution. It comes with no
 //    warranty or promise of suitability.
+//
 //
 //  USAGE INSTRUCTIONS
 //
@@ -43,6 +45,7 @@
 //  add whatever flags you need to your build infrastructure to compile it using C instead
 //  of C++). This will cause the C++ portions of the test structure to be left out.
 //
+//
 //  API NAMING CONVENTIONS
 //
 //  All macros defined here are of the form KSS_... and are all capitals.
@@ -51,6 +54,7 @@
 //  directly), are of the form _kss_testing_...  Similarly in the C++ code, any symbol
 //  within kss::testing that starts with an underscore should be considered private and
 //  not called directly.
+//
 //
 //  LIMITATIONS
 //
@@ -73,10 +77,18 @@
 //  they all implement a beforeAll and afterAll it is undefined which instances will
 //  actually be run. In other words, don't give multiple TestSet instances the same name.
 //
+//  TestSet and state
+//
+//  The underlying C immplementation makes it difficult (impossible?) for a TestSet to
+//  have state. In general it is best if unit tests do not have state, but if it is
+//  necessary you will need to provide the state externally to the TestSet instance.
+//
+//
 //  EXAMPLES
 //
 // 	The directory "testTheTest" provides example C and C++ code that I use to test the
 //	testing infrastructure.
+//
 //
 //  HISTORY
 //
@@ -279,6 +291,18 @@ namespace kss {
 			TestSet(TestSet&&) = delete;
 			TestSet& operator=(const TestSet&) = delete;
 			TestSet& operator=(TestSet&&) = delete;
+
+			/*!
+			 Override this method if you require code that should be run before each
+			 test in this test set.
+			 */
+			virtual void beforeEach() {}
+
+			/*!
+			 Override this method if you require code that should be run after each
+			 test in this test set.
+			 */
+			virtual void afterEach() {}
 
         private:
             std::string _testName;
