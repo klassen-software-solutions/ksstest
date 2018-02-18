@@ -43,13 +43,6 @@
 //  add whatever flags you need to your build infrastructure to compile it using C instead
 //  of C++). This will cause the C++ portions of the test structure to be left out.
 //
-//  LIMITATIONS
-//
-//  This library does not deal well with threads. Unit tests really should be small and
-//  separate enough that this isn't a problem, but if you really need to run multiple
-//  threads, say to test client/server systems, it can be done but you may be better off
-//  with a more significant test structure.
-//
 //  API NAMING CONVENTIONS
 //
 //  All macros defined here are of the form KSS_... and are all capitals.
@@ -58,6 +51,27 @@
 //  directly), are of the form _kss_testing_...  Similarly in the C++ code, any symbol
 //  within kss::testing that starts with an underscore should be considered private and
 //  not called directly.
+//
+//  LIMITATIONS
+//
+//  Multithreading
+//
+//  This library does not deal well with threads. Unit tests really should be small and
+//  separate enough that this isn't a problem, but if you really need to run multiple
+//  threads, say to test client/server systems, it can be done but you may be better off
+//  with a more significant test structure.
+//
+//  TestSet and beforeAll/afterAll implementation
+//
+//  A TestSet is implemented in the underlying C API by giving each test it contains the
+//  same name. The C API sorts all the tests allowing it to consider all the tests with
+//	the same name as related. The beforeAll and afterAll interfaces are injected before
+//	and after, respectively, the group of identically named tests. This is why they
+//  are implemented as separate interfaces, rather than as virtual methods of TestSet.
+//  It also implies that if you have multiple TestSet instances with the same test name,
+//  the beforeAll and afterAll will run before and after the full, multiple sets, and if
+//  they all implement a beforeAll and afterAll it is undefined which instances will
+//  actually be run. In other words, don't give multiple TestSet instances the same name.
 //
 //  EXAMPLES
 //
@@ -95,8 +109,8 @@ extern "C" {
 #define KSS_WARNING(msg) ((void) _kss_testing_warning(msg))
 
     /**
-     * Macro used to divide a test into groups. This only takes affect (i.e. only affects
-     * the display) when run in verbose mode.
+     * Macro used to divide (that is, to label) a test into groups. This only takes affect
+	 * (i.e. only affects the display) when run in verbose mode.
      */
 #define KSS_TEST_GROUP(name) ((void) _kss_testing_group(name))
 
@@ -157,19 +171,18 @@ extern "C" {
 #include <functional>
 #include <string>
 
-    /*!
-     Macro used to test that an expression causes terminate() to be called. Although not
-     obvious, this will only work in C++ code as the set_terminate function is a C++
-     function.
-     */
-#   define KSS_ASSERT_TERMINATE(expr) ((void)(kss::testing::_test_terminate([=]{expr}) == 1 ? _kss_testing_success() : _kss_testing_failure(#expr " did not terminate", __FILE__, __LINE__)))
-
 namespace kss {
     namespace testing {
 
         int _test_terminate(std::function<void(void)> lambda);
         std::string _test_build_exception_desc(const std::exception& e);
 
+		/*!
+		 Macro used to test that an expression causes terminate() to be called. Although not
+		 obvious, this will only work in C++ code as the set_terminate function is a C++
+		 function.
+		 */
+#   	define KSS_ASSERT_TERMINATE(expr) ((void)(kss::testing::_test_terminate([=]{expr}) == 1 ? _kss_testing_success() : _kss_testing_failure(#expr " did not terminate", __FILE__, __LINE__)))
 
         /*!
          Macro used to test that an exception is thrown by an expression.
@@ -180,7 +193,27 @@ namespace kss {
          Macro used to test that no exception is thrown by an expression.
          */
 #       define KSS_ASSERT_NOEXCEPTION(expr) { bool _caught=false; std::string _exdesc("unknown exception thrown by "); try { expr; } catch(std::exception& e) { _caught=true; _exdesc=kss::testing::_test_build_exception_desc(e); } catch(...) { _caught=true; } ((void) (!_caught ? _kss_testing_success() : _kss_testing_failure((_exdesc + #expr).c_str(), __FILE__, __LINE__))); } ((void) true)
-        
+
+
+		/*!
+		 If a TestSet requires a method that will run once before all of its tests, it must
+		 implement this interface.
+		 */
+		class HasBeforeAll {
+		public:
+			virtual void beforeAll() = 0;
+		};
+
+		/*!
+		 If a TestSet requires a method that will run once after all of its tests has
+		 completed, it must implement this interface.
+		 */
+		class HasAfterAll {
+		public:
+			virtual void afterAll() = 0;
+		};
+
+
         /*!
          The TestSet class is used to provide a nicer way for C++ to add tests to this
          framework. In particular it makes use of the fact that static constructors in C++
@@ -218,6 +251,10 @@ namespace kss {
          This will result in kss_testing_add("my_tests", ...) being called three times with
          the appropriate function pointer. (The underlying C can handle the lambdas so long
          as they require no arguments and contain no references to their context.)
+
+		 Starting with V4.2 the TestSet may be subclassed in order to add code that is
+		 run before and after the test set and before and after each test in the test set.
+		 Note that all of these are optional.
          */
         class TestSet {
         public:
@@ -228,14 +265,26 @@ namespace kss {
              test set instances must be declared statically.
              */
             explicit TestSet(const std::string& testName, std::initializer_list<test_fn> fns) : _testName(testName) {
+				register_instance();
                 for (const auto& fn : fns) {
                     add_test(fn);
                 }
             }
 
+			virtual ~TestSet() noexcept {
+			}
+
+			// TestSets are intended ot be static and should not be moved or copied.
+			TestSet(const TestSet&) = delete;
+			TestSet(TestSet&&) = delete;
+			TestSet& operator=(const TestSet&) = delete;
+			TestSet& operator=(TestSet&&) = delete;
+
         private:
             std::string _testName;
-            void add_test(test_fn fn) { kss_testing_add(_testName.c_str(), fn); }
+
+			void add_test(test_fn fn) const noexcept;
+			void register_instance();
         };
     }
 }
