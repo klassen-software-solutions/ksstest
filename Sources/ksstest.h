@@ -43,6 +43,15 @@
 //  add whatever flags you need to your build infrastructure to compile it using C instead
 //  of C++). This will cause the C++ portions of the test structure to be left out.
 //
+//  API NAMING CONVENTIONS
+//
+//  All macros defined here are of the form KSS_... and are all capitals.
+//  All public functions are of the form kss_testing_... and are all lower case.
+//  All private non-static functions (i.e. need to be public but should not be called
+//  directly), are of the form _kss_testing_...  Similarly in the C++ code, any symbol
+//  within kss::testing that starts with an underscore should be considered private and
+//  not called directly.
+//
 //  LIMITATIONS
 //
 //  Multithreading
@@ -63,15 +72,6 @@
 //  the beforeAll and afterAll will run before and after the full, multiple sets, and if
 //  they all implement a beforeAll and afterAll it is undefined which instances will
 //  actually be run. In other words, don't give multiple TestSet instances the same name.
-//
-//  API NAMING CONVENTIONS
-//
-//  All macros defined here are of the form KSS_... and are all capitals.
-//  All public functions are of the form kss_testing_... and are all lower case.
-//  All private non-static functions (i.e. need to be public but should not be called
-//  directly), are of the form _kss_testing_...  Similarly in the C++ code, any symbol
-//  within kss::testing that starts with an underscore should be considered private and
-//  not called directly.
 //
 //  EXAMPLES
 //
@@ -171,19 +171,18 @@ extern "C" {
 #include <functional>
 #include <string>
 
-    /*!
-     Macro used to test that an expression causes terminate() to be called. Although not
-     obvious, this will only work in C++ code as the set_terminate function is a C++
-     function.
-     */
-#   define KSS_ASSERT_TERMINATE(expr) ((void)(kss::testing::_test_terminate([=]{expr}) == 1 ? _kss_testing_success() : _kss_testing_failure(#expr " did not terminate", __FILE__, __LINE__)))
-
 namespace kss {
     namespace testing {
 
         int _test_terminate(std::function<void(void)> lambda);
         std::string _test_build_exception_desc(const std::exception& e);
 
+		/*!
+		 Macro used to test that an expression causes terminate() to be called. Although not
+		 obvious, this will only work in C++ code as the set_terminate function is a C++
+		 function.
+		 */
+#   	define KSS_ASSERT_TERMINATE(expr) ((void)(kss::testing::_test_terminate([=]{expr}) == 1 ? _kss_testing_success() : _kss_testing_failure(#expr " did not terminate", __FILE__, __LINE__)))
 
         /*!
          Macro used to test that an exception is thrown by an expression.
