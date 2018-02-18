@@ -45,10 +45,24 @@
 //
 //  LIMITATIONS
 //
+//  Multithreading
+//
 //  This library does not deal well with threads. Unit tests really should be small and
 //  separate enough that this isn't a problem, but if you really need to run multiple
 //  threads, say to test client/server systems, it can be done but you may be better off
 //  with a more significant test structure.
+//
+//  TestSet and beforeAll/afterAll implementation
+//
+//  A TestSet is implemented in the underlying C API by giving each test it contains the
+//  same name. The C API sorts all the tests allowing it to consider all the tests with
+//	the same name as related. The beforeAll and afterAll interfaces are injected before
+//	and after, respectively, the group of identically named tests. This is why they
+//  are implemented as separate interfaces, rather than as virtual methods of TestSet.
+//  It also implies that if you have multiple TestSet instances with the same test name,
+//  the beforeAll and afterAll will run before and after the full, multiple sets, and if
+//  they all implement a beforeAll and afterAll it is undefined which instances will
+//  actually be run. In other words, don't give multiple TestSet instances the same name.
 //
 //  API NAMING CONVENTIONS
 //
@@ -95,8 +109,8 @@ extern "C" {
 #define KSS_WARNING(msg) ((void) _kss_testing_warning(msg))
 
     /**
-     * Macro used to divide a test into groups. This only takes affect (i.e. only affects
-     * the display) when run in verbose mode.
+     * Macro used to divide (that is, to label) a test into groups. This only takes affect
+	 * (i.e. only affects the display) when run in verbose mode.
      */
 #define KSS_TEST_GROUP(name) ((void) _kss_testing_group(name))
 
@@ -182,6 +196,25 @@ namespace kss {
 #       define KSS_ASSERT_NOEXCEPTION(expr) { bool _caught=false; std::string _exdesc("unknown exception thrown by "); try { expr; } catch(std::exception& e) { _caught=true; _exdesc=kss::testing::_test_build_exception_desc(e); } catch(...) { _caught=true; } ((void) (!_caught ? _kss_testing_success() : _kss_testing_failure((_exdesc + #expr).c_str(), __FILE__, __LINE__))); } ((void) true)
 
 
+		/*!
+		 If a TestSet requires a method that will run once before all of its tests, it must
+		 implement this interface.
+		 */
+		class HasBeforeAll {
+		public:
+			virtual void beforeAll() = 0;
+		};
+
+		/*!
+		 If a TestSet requires a method that will run once after all of its tests has
+		 completed, it must implement this interface.
+		 */
+		class HasAfterAll {
+		public:
+			virtual void afterAll() = 0;
+		};
+
+
         /*!
          The TestSet class is used to provide a nicer way for C++ to add tests to this
          framework. In particular it makes use of the fact that static constructors in C++
@@ -247,17 +280,6 @@ namespace kss {
 			TestSet(TestSet&&) = delete;
 			TestSet& operator=(const TestSet&) = delete;
 			TestSet& operator=(TestSet&&) = delete;
-
-			/*!
-			 Override this to run code before any of the tests in this test suite are run.
-			 */
-			virtual void beforeAll() {}
-
-			/*!
-			 Override this to run code after all of the tests in this test suite have
-			 completed.
-			 */
-			virtual void afterAll() {}
 
         private:
             std::string _testName;

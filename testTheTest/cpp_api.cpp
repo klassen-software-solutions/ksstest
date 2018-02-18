@@ -38,34 +38,74 @@ static TestSet ts("basic C++ tests", {
 });
 
 
-class MyExtendedTestSet : public TestSet {
+namespace {
+	int beforeAllCount = 0;
+	int afterAllCount = 0;
+}
+
+class MyBeforeAllTestSet : public TestSet, public HasBeforeAll {
+public:
+	MyBeforeAllTestSet(const string& testName, initializer_list<test_fn> fns) : TestSet(testName, fns) {}
+
+	virtual void beforeAll() override {
+		++beforeAllCount;
+	}
+
+	bool ranBeforeAll = false;
+};
+
+class MyAfterAllTestSet : public TestSet, public HasAfterAll {
+public:
+	MyAfterAllTestSet(const string& testName, initializer_list<test_fn> fns) : TestSet(testName, fns) {}
+
+	virtual void afterAll() override {
+		++afterAllCount;
+	}
+};
+
+class MyExtendedTestSet : public TestSet, public HasBeforeAll, public HasAfterAll {
 public:
 	explicit MyExtendedTestSet(const string& testName, initializer_list<test_fn> fns)
 	: TestSet(testName, fns)
 	{}
 
 	virtual void beforeAll() override {
-		++beforeAllCallCount;
+		++beforeAllCount;
 	}
 
 	virtual void afterAll() override {
-		++afterAllCallCount;
+		++afterAllCount;
 	}
-
-	int beforeAllCallCount = 0;
-	int afterAllCallCount = 0;
 };
+
+static MyAfterAllTestSet aats("extended C++ afterAll tests", {
+	[]{
+		KSS_TEST_GROUP("group1");
+		KSS_ASSERT(beforeAllCount == 0);
+		KSS_ASSERT(afterAllCount == 0);
+	}
+});
+
+static MyBeforeAllTestSet bats("extended C++ beforeAll test", {
+	[]{
+		KSS_TEST_GROUP("group1");
+		KSS_ASSERT(beforeAllCount == 1);
+		KSS_ASSERT(afterAllCount == 1);
+	}
+});
 
 static MyExtendedTestSet mets("extended C++ tests", {
 	[]{
 		KSS_TEST_GROUP("group1");
+		KSS_ASSERT(beforeAllCount == 2);
+		KSS_ASSERT(afterAllCount == 1);
 	}
 });
 
-static TestSet afterMets("zzz extended C++ test results", {
+static TestSet afterMets("extended C++ zzz test results", {
 	[]{
 		KSS_TEST_GROUP("examining extended results");
-		KSS_ASSERT(mets.beforeAllCallCount == 1);
-		KSS_ASSERT(mets.afterAllCallCount == 1);
+		KSS_ASSERT(beforeAllCount == 2);
+		KSS_ASSERT(afterAllCount == 2);
 	}
 });

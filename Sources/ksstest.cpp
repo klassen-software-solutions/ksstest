@@ -453,24 +453,23 @@ string kss::testing::_test_build_exception_desc(const std::exception &e) {
 namespace {
 	static unordered_map<string, TestSet*> testSetMap;
 
-	bool is_subclassed(const TestSet* ts) noexcept {
-		const TestSet& tsr = *ts;
-		return (typeid(tsr) != typeid(TestSet));
-	}
-
 	void perform_before_all(const char* testName) {
 		const auto it = testSetMap.find(testName);
-		if (it != testSetMap.end() && is_subclassed(it->second)) {
-			if (verbose) printf("\n%sbeforeAll", groupPadding);
-			it->second->beforeAll();
+		if (it != testSetMap.end()) {
+			if (auto hba = dynamic_cast<HasBeforeAll*>(it->second)) {
+				if (verbose) printf("\n%sbeforeAll", groupPadding);
+				hba->beforeAll();
+			}
 		}
 	}
 
 	void perform_after_all(const char* testName) {
 		const auto it = testSetMap.find(testName);
-		if (it != testSetMap.end() && is_subclassed(it->second)) {
-			if (verbose) printf("\n%safterAll", groupPadding);
-			it->second->afterAll();
+		if (it != testSetMap.end()) {
+			if (auto haa = dynamic_cast<HasAfterAll*>(it->second)) {
+				if (verbose) printf("\n%safterAll", groupPadding);
+				haa->afterAll();
+			}
 		}
 	}
 
