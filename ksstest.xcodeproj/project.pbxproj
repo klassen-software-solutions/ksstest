@@ -45,6 +45,8 @@
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAA40F221F3CED7E005D181B /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
 		AAA40F231F3CED7E005D181B /* ksstest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksstest.h; sourceTree = "<group>"; };
+		AAD09DE220730A1600B527FB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		AAD09DE320730DDA00B527FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,8 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
+				AAD09DE320730DDA00B527FB /* README.md */,
+				AAD09DE220730A1600B527FB /* LICENSE */,
 				AAA40F191F3CAC04005D181B /* Sources */,
 				AA66844F2038A6F700819C6A /* testTheTest */,
 				AAA40F131F3CAAF2005D181B /* Products */,
