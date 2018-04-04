@@ -1,319 +1,233 @@
 //
-//  ksstest.h
+//  ksstest.hpp
+//  ksstest
 //
-//  Created by Steven W. Klassen on 2011-10-22.
+//  Created by Steven W. Klassen on 2018-04-03.
+//  Copyright © 2018 Klassen Software Solutions. All rights reserved.
 //
-//
-//  COPYING
-//
-//  Copyright (c) 2011 Klassen Software Solutions. All rights reserved. This code may
-//    be used/modified/redistributed without restriction or attribution. It comes with no
-//    warranty or promise of suitability.
-//
-//
-//  USAGE INSTRUCTIONS
-//
-//  This library was created to provide a simple and standalone unit testing ability to either
-//  C or C++ projects. Note that there are more powerful unit testing solutions out there,
-//  but if you want to add unit tests to a library that you want truly standalone, i.e. you
-//  don't want to require that a specific unit testing library be downloaded and installed,
-//  then this is a good option.
-//
-//  To add these unit tests to your system, all you need to do is add the files ksstest.h
-//  and ksstest.cpp to your testing project. Then include "ksstest.h" where you need it. Once
-//  done you call kss_testing_add to add tests to the framework and kss_testing_run to actually
-//  run them. In C++ you can use kss::testing::TestSet to easily add tests without having to
-//  explicitly reference them in your main function. In C (at least in gcc and clang) you
-//  can declare a function with a constructor attribute to do much the same thing. For example,
-//
-//	   static void test1Fn() {
-//         KSS_TEST_GROUP("group1");
-//         ... assertions go here ...
-//     }
-//
-//     static void test2Fn() {
-//         KSS_TEST_GROUP("group2");
-//         ... assertions go here ...
-//     }
-//
-//     void __attribute__ ((constructor)) add_local_tests() {
-//         kss_testing_add("test 1", test1Fn);
-//         kss_testing_add("test 2", test2Fn);
-//     }
-//
-//  To use this in a strictly C library you should rename ksstest.cpp to ksstest.c (or
-//  add whatever flags you need to your build infrastructure to compile it using C instead
-//  of C++). This will cause the C++ portions of the test structure to be left out.
-//
-//
-//  API NAMING CONVENTIONS
-//
-//  All macros defined here are of the form KSS_... and are all capitals.
-//  All public functions are of the form kss_testing_... and are all lower case.
-//  All private non-static functions (i.e. need to be public but should not be called
-//  directly), are of the form _kss_testing_...  Similarly in the C++ code, any symbol
-//  within kss::testing that starts with an underscore should be considered private and
-//  not called directly.
-//
-//
-//  LIMITATIONS
-//
-//  Multithreading
-//
-//  This library does not deal well with threads. Unit tests really should be small and
-//  separate enough that this isn't a problem, but if you really need to run multiple
-//  threads, say to test client/server systems, it can be done but you may be better off
-//  with a more significant test structure.
-//
-//  TestSet and beforeAll/afterAll implementation
-//
-//  A TestSet is implemented in the underlying C API by giving each test it contains the
-//  same name. The C API sorts all the tests allowing it to consider all the tests with
-//	the same name as related. The beforeAll and afterAll interfaces are injected before
-//	and after, respectively, the group of identically named tests. This is why they
-//  are implemented as separate interfaces, rather than as virtual methods of TestSet.
-//  It also implies that if you have multiple TestSet instances with the same test name,
-//  the beforeAll and afterAll will run before and after the full, multiple sets, and if
-//  they all implement a beforeAll and afterAll it is undefined which instances will
-//  actually be run. In other words, don't give multiple TestSet instances the same name.
-//
-//  TestSet and state
-//
-//  The underlying C immplementation makes it difficult (impossible?) for a TestSet to
-//  have state. In general it is best if unit tests do not have state, but if it is
-//  necessary you will need to provide the state externally to the TestSet instance.
-//
-//
-//  EXAMPLES
-//
-// 	The directory "testTheTest" provides example C and C++ code that I use to test the
-//	testing infrastructure.
-//
-//
-//  HISTORY
-//
-//  V4.1 - refactored to separate from the kssutil library
-//	V4.1.1 - added testTheTest to allow the testing infrastructure to itself be tested.
-//
-//  V4.2 - significant improvements to the C++ api
-//
-
+// However a license is hereby granted for this code to be used, modified and redistributed
+// without restriction or requirement, other than you cannot hinder anyone else from doing
+// the same.
 
 #ifndef ksstest_h
 #define ksstest_h
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
-    /**
-     * Macro used to perform a single test in a test function. This works like assert
-     * but instead of halting execution it updates the internal status of our test
-     * suite singleton.
-     */
-#define KSS_ASSERT(expr) ((void) ((expr) ? _kss_testing_success() : _kss_testing_failure(#expr, __FILE__, __LINE__)))
-    
-    /**
-     * Macro used to produce a warning message in a manner that is readable with the
-     * testing output.
-     */
-#define KSS_WARNING(msg) ((void) _kss_testing_warning(msg))
-
-    /**
-     * Macro used to divide (that is, to label) a test into groups. This only takes affect
-	 * (i.e. only affects the display) when run in verbose mode.
-     */
-#define KSS_TEST_GROUP(name) ((void) _kss_testing_group(name))
-
-    
-    /**
-     * Add a test function to the test suite. Note that every test function should be
-     * independant as the test suite will be sorted before it is run. If testName is the
-     * same as an existing test case, the new function will be added to that test case.
-     */
-    void kss_testing_add(const char* testName, void (*testFn)(void));
-
-    /**
-     * Clear all the tests from the test suite.
-     */
-    void kss_testing_clear(void);
-    
-    /**
-     * Run the tests and report their results. Typically you would call kss_testing_add
-     * a number of times, then kss_testing_run once. After you have run the tests the
-     * test suite (which is maintained as a singleton) will be cleared. You could then
-     * add tests and run them (which would be a separate test suite) but typically you
-     * would have one test program that runs all your tests as a single suite.
-     *
-     * NOTE: This is NOT thread-safe. The tests should be added and run from the
-     *  same thread.
-     *
-     * @param testSuiteName - only used for display purposes
-     * @param argc - number of parameters in argv.
-     * @param argv - optional command line parameters. May be 0, NULL if you
-     *  don't want this support. The following parameters are supported. All others
-     *  are quietly ignored.
-     *  -h/--help displays a usage message
-     *  -q/--quiet suppresses the test infrastructure output. Useful if you only want your
-     *      program output or if you want it to be quietly used in a larger test structure.
-     *      (You would have to rely on the return value to determine if all the tests
-     *      pass.)
-     *  -v/--verbose displays more information. -q/--quiet will override this setting
-     *  -f <testprefix>/--filter=<testprefix> only run tests that start with testprefix
-     *
-     * @return one of the following values:
-     *   0 - implies the tests ran and all tests passed.
-     *   -1 - no tests were defined.
-     *   -2 - there was a problem running the test platform
-     *   >0 - implies the tests ran and the returned number of tests failed. 
-     */
-    int kss_testing_run(const char* testSuiteName, int argc, const char* const* argv);
-
-
-    void _kss_testing_success(void);
-    void _kss_testing_failure(const char* expr, const char* filename, unsigned int line);
-    void _kss_testing_warning(const char* msg);
-    void _kss_testing_group(const char* groupname);
-
-#ifdef __cplusplus
-}
-
-#include <exception>
 #include <functional>
+#include <initializer_list>
+#include <memory>
 #include <string>
 
 namespace kss {
-    namespace testing {
+	namespace testing {
 
-        int _test_terminate(std::function<void(void)> lambda);
-        std::string _test_build_exception_desc(const std::exception& e);
+		// MARK: Running
 
 		/*!
-		 Macro used to test that an expression causes terminate() to be called. Although not
-		 obvious, this will only work in C++ code as the set_terminate function is a C++
-		 function.
+		 Run the currently registered tests and report their results.
+
+		 Command line arguments (unsupported arguments are quietly ignored allowing
+		 you to add to this list):
+
+		 -h/--help displays a usage message
+		 -q/--quiet suppress test result output. (Useful if all you want is the return value.)
+		 -v/--verbose displays more information (-q will override this if present)
+		 -p/--parallel if you wish to run the tests in parallel (-v will be ignored if present)
+		 -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
+		 --xml produces no output while running, but a JUnit compatible XML when completed
+		 --json produces no output file running, but a Google test compatible JSON when completed
+
+		 Returns one of the following values:
+		  0 - all tests passed
+		  >0 - the number of tests that failed
+
+		 @throws std::invalid_argument if any of the arguments are missing or wrong.
+		 @throws std::runtime_error if something goes wrong with the run itself.
 		 */
-#   	define KSS_ASSERT_TERMINATE(expr) ((void)(kss::testing::_test_terminate([=]{expr}) == 1 ? _kss_testing_success() : _kss_testing_failure(#expr " did not terminate", __FILE__, __LINE__)))
+		int run(const std::string& testRunName, int argc, const char* const* argv);
 
-        /*!
-         Macro used to test that an exception is thrown by an expression.
-         */
-#       define KSS_ASSERT_EXCEPTION(expr, ex) { bool _caught=false; try { expr; } catch(ex& e) { _caught=true; } catch(...) { } ((void) (_caught ? _kss_testing_success() : _kss_testing_failure(#ex " not thrown by " #expr, __FILE__, __LINE__))); } ((void) true)
-
-        /*!
-         Macro used to test that no exception is thrown by an expression.
-         */
-#       define KSS_ASSERT_NOEXCEPTION(expr) { bool _caught=false; std::string _exdesc("unknown exception thrown by "); try { expr; } catch(std::exception& e) { _caught=true; _exdesc=kss::testing::_test_build_exception_desc(e); } catch(...) { _caught=true; } ((void) (!_caught ? _kss_testing_success() : _kss_testing_failure((_exdesc + #expr).c_str(), __FILE__, __LINE__))); } ((void) true)
-
+		// MARK: Assertions
 
 		/*!
-		 If a TestSet requires a method that will run once before all of its tests, it must
-		 implement this interface.
+		 Macro to perform a single test. This works like assert but instead of halting
+		 execution it updates the internal status of the test suit.
+		 */
+#		define KSS_ASSERT(expr) ((void) ((expr) ? _success() : _failure(#expr, __FILE__, __LINE__)))
+
+		// The following are intended to be used inside KSS_ASSERT in order to make the
+		// test intent clearer. They are especially useful if your test contains multiple
+		// lines of code. For single line tests you may want to jsut use the assertion
+		// on its own. For example,
+		//  KSS_ASSERT(isEqualTo(3, []{ return i; }));
+		// isn't really any clearer than
+		//  KSS_ASSERT(i == 3);
+		// However,
+		//  KSS_ASSERT(isEqualTo(3, []{
+		//     auto val = obtainAValueFromSomewhere();
+		//     doSomeWorkOnTheValue(&val);
+		//     return val;
+		//  }));
+		// is much clearer than trying to do it all in the assertions expr argument.
+
+		/*!
+		 Returns true if the lambda returns true.
+		 example:
+		   KSS_ASSERT(isTrue([]{ return true; }));
+		 */
+		inline bool isTrue(std::function<bool(void)> fn) { return fn(); }
+
+		/*!
+		 Returns true if the lambda returns false.
+		 example:
+		   KSS_ASSERT(isFalse([]{ return false; }));
+		 */
+		inline bool isFalse(std::function<bool(void)> fn) { return !fn(); }
+
+		/*!
+		 Returns true if the lambda returns a value that is equal to a.
+		 example:
+		   KSS_ASSERT(isEqualTo(23, []{ return 21+2; }));
+		 */
+		template <class T>
+		bool isEqualTo(const T& a, std::function<T(void)> fn) {
+			return (fn() == a);
+		}
+
+		/*!
+		 Returns true if the lambda returns a value that is not equal to a.
+		 example:
+		   KSS_ASSERT(isNotEqualTo(23, []{ return 21-2; }));
+		 */
+		template <class T>
+		bool isNotEqualTo(const T& a, std::function<T(void)> fn) {
+			return (!(fn() == a));
+		}
+
+		/*!
+		 Returns true if the lambda throws an exception of the given type.
+		 example:
+		   KSS_ASSERT(throwsException<std::runtime_error>([]{
+		       throw std::runtime_error("hello");
+		   }));
+		 */
+		template <class Exception>
+		bool throwsException(std::function<void(void)> fn) {
+			bool caughtCorrectException = false;
+			try {
+				fn();
+			}
+			catch (const Exception&) {
+				caughtCorrectException = true;
+			}
+			catch (...) {
+			}
+			return caughtCorrectException;
+		}
+
+		/*!
+		 Returns true if the lambda does not throw any exception.
+		 example:
+		   KSS_ASSERT(doesNotThrowException([]{ doSomeWork(); }));
+		 */
+		bool doesNotThrowException(std::function<void(void)> fn);
+
+		/*!
+		 Returns true if the lambda causes terminate to be called.
+		 example:
+		 inline void cannot_throw() noexcept { throw std::runtime_error("hi"); }
+
+		 KSS_ASSERT(terminates([]{ cannot_throw() }));
+		 */
+		bool terminates(std::function<void(void)> fn);
+
+
+		// MARK: TestSuite
+
+		/*!
+		 Use this class to define the test suites to be run. Most of the time you will
+		 likely just use this class "as is" providing the necessary tests in the constructor.
+		 But you can also subclass it if you need to modify its default behaviour.
+		 */
+		class TestSuite {
+		public:
+			using test_case_fn = std::function<void(const std::string& testCaseName)>;
+
+			/*!
+			 Construct a test suite. All the test cases are lambdas that conform to test_case_fn.
+			 They are all included in the constructor and a static version of each TestSuite
+			 must be declared. (It is the static declaration that will register the test
+			 suite with the internal infrastructure.
+
+			 Note that the lambdas are not run in the construction. They will be run at
+			 the appropriate time when kss::testing::run is called.
+			 */
+			explicit TestSuite(const std::string& testSuiteName,
+							   const std::initializer_list<test_case_fn> fns);
+			virtual ~TestSuite() noexcept;
+
+			TestSuite(TestSuite&&);
+			TestSuite& operator=(TestSuite&&);
+
+			TestSuite(const TestSuite&) = delete;
+			TestSuite& operator=(const TestSuite&) = delete;
+
+			/*!
+			 Accessors
+			 */
+			const std::string& name() const noexcept;
+
+		private:
+			struct Impl;
+			std::unique_ptr<Impl> _impl;
+		};
+
+
+		// MARK: TestSuite Modifiers
+
+		// Most of the time you will likely use TestSuite "as is" just providing the
+		// tests in the constructor. However, you can modify it's default behavious by
+		// creating a subclass that inherits from one or more of the following interfaces.
+
+		/*!
+		 Extend your TestSuite with this interface if you wish it to call code before
+		 and after all all the tests in your TestSuite. (Note that you must provide both
+		 or neither of the methods, although you can make them empty methods if desired.)
 		 */
 		class HasBeforeAll {
 		public:
 			virtual void beforeAll() = 0;
-		};
-
-		/*!
-		 If a TestSet requires a method that will run once after all of its tests has
-		 completed, it must implement this interface.
-		 */
-		class HasAfterAll {
-		public:
 			virtual void afterAll() = 0;
 		};
 
+		/*!
+		 Extend your TestSuite with this interface if you wish it to call code before and
+		 after each of the tests in your TestSuite. (Note that you must provide both or
+		 neither of the methods, although you can make them empty methods if desired.)
+		 */
+		class HasBeforeEach {
+		public:
+			virtual void beforeEach() = 0;
+			virtual void afterEach() = 0;
+		};
 
-        /*!
-         The TestSet class is used to provide a nicer way for C++ to add tests to this
-         framework. In particular it makes use of the fact that static constructors in C++
-         will execute before main() is called. This makes it possible for the constructors
-         to call kss_testing_add automatically and to avoid having to create external
-         references to the tests for the sake of the main() method.
-         
-         To use this you create a static instance of this class and pass it an initialization
-         list of lambdas or function pointers conforming to the test_fn signature. These
-         will be automatically added to the testing framework, all with the test name given
-         in the test set constructor.
-         
-         It is recommended (but not required) that the first line of each of these functions
-         be a KSS_TEST_GROUP call in order to annotate the groups within the test set.
-         
-         An example...
-         
-         static void myfunctionexample() {
-            KSS_TEST_GROUP("function test 1");
-            // a bunch of tests
-         }
+		/*!
+		 Extend your TestSuite with this interface if you wish it to always be run on
+		 the main thread. Note that it still may run in parallel with other TestSuites
+		 that do not use this interface. But any that inherit from this interface will
+		 not run in parallel with each other.
 
-         static kss::testing::TestSet myTests("my_tests", {
-            []{
-                KSS_TEST_GROUP("lambda test 1");
-                // a bunch of tests
-            },
-            []{
-                KSS_TEST_GROUP("lambda test 2");
-                // a bunch of tests
-            },
-            myfunctionexample
-         });
-         
-         This will result in kss_testing_add("my_tests", ...) being called three times with
-         the appropriate function pointer. (The underlying C can handle the lambdas so long
-         as they require no arguments and contain no references to their context.)
+		 (There are no methods in this interface. Simply having your class inherit from
+		 it will be enough.)
+		 */
+		class MustNotBeParallel {
+		};
 
-		 Starting with V4.2 the TestSet may be subclassed in order to add code that is
-		 run before and after the test set and before and after each test in the test set.
-		 Note that all of these are optional.
-         */
-        class TestSet {
-        public:
-            using test_fn = void (*)();     // Type of functions (or lambdas) accepted by test sets.
-
-            /*!
-             Construct a test set. Note that for this to work in this infrastructure the
-             test set instances must be declared statically.
-             */
-            explicit TestSet(const std::string& testName, std::initializer_list<test_fn> fns) : _testName(testName) {
-				register_instance();
-                for (const auto& fn : fns) {
-                    add_test(fn);
-                }
-            }
-
-			virtual ~TestSet() noexcept {
-			}
-
-			// TestSets are intended ot be static and should not be moved or copied.
-			TestSet(const TestSet&) = delete;
-			TestSet(TestSet&&) = delete;
-			TestSet& operator=(const TestSet&) = delete;
-			TestSet& operator=(TestSet&&) = delete;
-
-			/*!
-			 Override this method if you require code that should be run before each
-			 test in this test set.
-			 */
-			virtual void beforeEach() {}
-
-			/*!
-			 Override this method if you require code that should be run after each
-			 test in this test set.
-			 */
-			virtual void afterEach() {}
-
-        private:
-            std::string _testName;
-
-			void add_test(test_fn fn) const noexcept;
-			void register_instance();
-        };
-    }
+		namespace _private {
+			// This namespace defines items that need to be publically available for syntactical
+			// reasons but should be treated as private and never called manually.
+			void _success(void) noexcept;
+			void _failure(const char* expr, const char* filename, unsigned int line) noexcept;
+		}
+	}
 }
-#endif
 
-#endif
-
-
+#endif /* ksstest_hpp */

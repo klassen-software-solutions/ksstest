@@ -11,8 +11,8 @@
 		AA6684582038A95200819C6A /* libksstest.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA40F121F3CAAF2005D181B /* libksstest.dylib */; };
 		AA66845A2038A97F00819C6A /* c_api.c in Sources */ = {isa = PBXBuildFile; fileRef = AA6684592038A97F00819C6A /* c_api.c */; };
 		AA66845C2038AB7300819C6A /* cpp_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA66845B2038AB7300819C6A /* cpp_api.cpp */; };
-		AAA40F241F3CED7E005D181B /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAA40F221F3CED7E005D181B /* ksstest.cpp */; };
-		AAA40F251F3CED7E005D181B /* ksstest.h in Headers */ = {isa = PBXBuildFile; fileRef = AAA40F231F3CED7E005D181B /* ksstest.h */; };
+		AAD09DED2074572F00B527FB /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DEB2074572F00B527FB /* ksstest.cpp */; };
+		AAD09DEE2074572F00B527FB /* ksstest.h in Headers */ = {isa = PBXBuildFile; fileRef = AAD09DEC2074572F00B527FB /* ksstest.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,10 +43,12 @@
 		AA6684592038A97F00819C6A /* c_api.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = c_api.c; sourceTree = "<group>"; };
 		AA66845B2038AB7300819C6A /* cpp_api.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpp_api.cpp; sourceTree = "<group>"; };
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		AAA40F221F3CED7E005D181B /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
-		AAA40F231F3CED7E005D181B /* ksstest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksstest.h; sourceTree = "<group>"; };
+		AAA40F221F3CED7E005D181B /* ksstest-old.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "ksstest-old.cpp"; sourceTree = "<group>"; };
+		AAA40F231F3CED7E005D181B /* ksstest-old.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ksstest-old.h"; sourceTree = "<group>"; };
 		AAD09DE220730A1600B527FB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AAD09DE320730DDA00B527FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		AAD09DEB2074572F00B527FB /* ksstest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
+		AAD09DEC2074572F00B527FB /* ksstest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksstest.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,8 +111,10 @@
 		AAA40F191F3CAC04005D181B /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				AAA40F221F3CED7E005D181B /* ksstest.cpp */,
-				AAA40F231F3CED7E005D181B /* ksstest.h */,
+				AAA40F221F3CED7E005D181B /* ksstest-old.cpp */,
+				AAA40F231F3CED7E005D181B /* ksstest-old.h */,
+				AAD09DEB2074572F00B527FB /* ksstest.cpp */,
+				AAD09DEC2074572F00B527FB /* ksstest.h */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -122,7 +126,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAA40F251F3CED7E005D181B /* ksstest.h in Headers */,
+				AAD09DEE2074572F00B527FB /* ksstest.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,7 +222,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAA40F241F3CED7E005D181B /* ksstest.cpp in Sources */,
+				AAD09DED2074572F00B527FB /* ksstest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
