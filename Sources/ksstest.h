@@ -32,13 +32,14 @@ namespace kss {
 		 -h/--help displays a usage message
 		 -q/--quiet suppress test result output. (Useful if all you want is the return value.)
 		 -v/--verbose displays more information (-q will override this if present)
-		 -p/--parallel if you wish to run the tests in parallel (-v will be ignored if present)
 		 -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
 		 --xml produces no output while running, but a JUnit compatible XML when completed
-		 --json produces no output file running, but a Google test compatible JSON when completed
+		 --json produces no output while running, but a Google test compatible JSON when completed
+		 --no-parallel if you want to force everything to run serially (assumed if --verbose is specified)
 
 		 Returns one of the following values:
 		  0 - all tests passed
+		  -1 - one or more error conditions were reported
 		  >0 - the number of tests that failed
 
 		 @throws std::invalid_argument if any of the arguments are missing or wrong.
@@ -197,6 +198,12 @@ namespace kss {
 
 			struct Impl;
 			std::unique_ptr<Impl> _impl;
+
+		public:
+			// Never call this! It must be public to allow access in some of the
+			// implementation internals.
+			const Impl* _implementation() const noexcept { return _impl.get(); }
+			Impl* _implementation() noexcept { return _impl.get(); }
 		};
 
 
