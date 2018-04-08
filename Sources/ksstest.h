@@ -16,6 +16,7 @@
 #include <initializer_list>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace kss {
 	namespace testing {
@@ -45,13 +46,29 @@ namespace kss {
 		 */
 		int run(const std::string& testRunName, int argc, const char* const* argv);
 
+		/*!
+		 Call this within a test if you want to skip it. Typically this would be the first
+		 line of your test, but it does not have to be. The the will be aborted at the
+		 point this is called, and the test will be marked as skipped regardless of whether
+		 it had passed or failed up to that point.
+
+		 If you place this in the beforeEach method, then all the test cases for that test
+		 suite will be skipped. If you place it in the afterEach method, then the test cases
+		 for that suite will run, but will still be marked as skipped.
+
+		 Note that the skip is implemented by throwing an exception and must not be caught
+		 or the skip will not be performed. The exception is NOT subclassed from std::exception,
+		 so as long as your code does not catch (...) it will be fine.
+		 */
+		void skip();
+
 		// MARK: Assertions
 
 		/*!
 		 Macro to perform a single test. This works like assert but instead of halting
 		 execution it updates the internal status of the test suit.
 		 */
-#		define KSS_ASSERT(expr) ((void) ((expr) ? _success() : _failure(#expr, __FILE__, __LINE__)))
+#		define KSS_ASSERT(expr) ((void) ((expr) ? _private::_success() : _private::_failure(#expr, __FILE__, __LINE__)))
 
 		// The following are intended to be used inside KSS_ASSERT in order to make the
 		// test intent clearer. They are especially useful if your test contains multiple
@@ -149,7 +166,8 @@ namespace kss {
 		 */
 		class TestSuite {
 		public:
-			using test_case_fn = std::function<void(const std::string& testCaseName)>;
+			using test_case_fn = std::function<void(TestSuite&)>;
+			using test_case_list = std::initializer_list<std::pair<std::string, test_case_fn>>;
 
 			/*!
 			 Construct a test suite. All the test cases are lambdas that conform to test_case_fn.
@@ -160,8 +178,7 @@ namespace kss {
 			 Note that the lambdas are not run in the construction. They will be run at
 			 the appropriate time when kss::testing::run is called.
 			 */
-			explicit TestSuite(const std::string& testSuiteName,
-							   const std::initializer_list<test_case_fn> fns);
+			explicit TestSuite(const std::string& testSuiteName, test_case_list fns);
 			virtual ~TestSuite() noexcept;
 
 			TestSuite(TestSuite&&);
@@ -176,6 +193,8 @@ namespace kss {
 			const std::string& name() const noexcept;
 
 		private:
+			friend int run(const std::string& testRunName, int argc, const char* const* argv);
+
 			struct Impl;
 			std::unique_ptr<Impl> _impl;
 		};
@@ -188,24 +207,33 @@ namespace kss {
 		// creating a subclass that inherits from one or more of the following interfaces.
 
 		/*!
-		 Extend your TestSuite with this interface if you wish it to call code before
-		 and after all all the tests in your TestSuite. (Note that you must provide both
-		 or neither of the methods, although you can make them empty methods if desired.)
+		 Extend your TestSuite with these interfaces if you wish it to call code before
+		 (or after) all all the tests in your TestSuite. It is acceptable to perform
+		 tests in these methods - they will be treated as a test case called "BeforeAll"
+		 and "AfterAll", respectively.
 		 */
 		class HasBeforeAll {
 		public:
 			virtual void beforeAll() = 0;
+		};
+
+		class HasAfterAll {
+		public:
 			virtual void afterAll() = 0;
 		};
 
 		/*!
-		 Extend your TestSuite with this interface if you wish it to call code before and
-		 after each of the tests in your TestSuite. (Note that you must provide both or
-		 neither of the methods, although you can make them empty methods if desired.)
+		 Extend your TestSuite with these interfaces if you wish it to call code before
+		 (or after) each of the tests in your TestSuite. It is acceptable to perform
+		 tests in these methods - they will be treated as part of each test case.
 		 */
 		class HasBeforeEach {
 		public:
 			virtual void beforeEach() = 0;
+		};
+
+		class HasAfterEach {
+		public:
 			virtual void afterEach() = 0;
 		};
 
