@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <exception>
+#include <future>
 #include <iostream>
 #include <set>
 #include <string>
@@ -350,6 +351,8 @@ namespace {
 		if (!isQuiet) {
 			if (isParallel) {
 				flush(cout);	// Ensure all the thread output is flushed.
+			}
+			if (!isVerbose) {
 				cout << endl;
 			}
 
@@ -495,18 +498,18 @@ namespace {
 		return numberOfFailures;
 	}
 
-	void runTestSuite(TestSuiteWrapper& wrapper) {
-		printTestSuiteHeader(*wrapper.suite);
-		auto* impl = wrapper.suite->_implementation();
+	void runTestSuite(TestSuiteWrapper* wrapper) {
+		printTestSuiteHeader(*wrapper->suite);
+		auto* impl = wrapper->suite->_implementation();
 		impl->addBeforeAndAfterAll();
-		currentSuite = &wrapper;
+		currentSuite = wrapper;
 		for (auto& t : impl->tests) {
 			printTestCaseHeader(t);
 			impl->runTestCase(t);
 			printTestCaseSummary(t);
 		}
 		currentSuite = nullptr;
-		printTestSuiteSummary(*wrapper.suite);
+		printTestSuiteSummary(*wrapper->suite);
 	}
 }
 
@@ -517,8 +520,24 @@ namespace kss { namespace testing {
 		if (parseCommandLine(argc, argv)) {
 			printTestRunHeader(testRunName);
 			sort(testSuites.begin(), testSuites.end());
+			vector<future<bool>> futures;
 			for (auto& ts : testSuites) {
-				runTestSuite(ts);
+				if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
+					runTestSuite(&ts);
+				}
+				else {
+					TestSuiteWrapper* tsw = &ts;
+					futures.push_back(async([tsw]{
+						runTestSuite(tsw);
+						return true;
+					}));
+				}
+			}
+			
+			if (!futures.empty()) {
+				for (auto& fut : futures) {
+					fut.get();
+				}
 			}
 			printTestRunSummary();
 		}
