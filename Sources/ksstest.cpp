@@ -70,17 +70,15 @@ namespace {
 		lambda _cleanupCode;
 	};
 
-
-
 	// Exception that is thrown to skip a test case.
 	class SkipTestCase {};
 
 	// Signal handler to allow us to ignore SIGCHLD.
-	static void my_signal_handler(int sig) {
+	void my_signal_handler(int sig) {
 	}
 
 	// Terminate handler allowing us to catch the terminate call.
-	static void my_terminate_handler() {
+	void my_terminate_handler() {
 		_exit(0);           // Correct response.
 	}
 
@@ -98,7 +96,8 @@ namespace {
 	};
 
 	struct TestSuiteWrapper {
-		TestSuite* suite;
+		TestSuite* 	suite;
+		bool		filteredOut = false;
 
 		bool operator<(const TestSuiteWrapper& rhs) const noexcept {
 			return suite->name() < rhs.suite->name();
@@ -112,6 +111,7 @@ namespace {
 	static bool								isQuiet = false;
 	static bool								isVerbose = false;
 	static bool								isParallel = true;
+	static string							filter;
 
 	// Parse the command line. Returns true if we should continue or false if we
 	// should exit.
@@ -120,8 +120,8 @@ namespace {
 		{ "quiet", no_argument, nullptr, 'q' },
 		{ "verbose", no_argument, nullptr, 'v' },
 		{ "filter", required_argument, nullptr, 'f' },
-		{ "xml", no_argument, nullptr, 'X' },
-		{ "json", no_argument, nullptr, 'J' },
+		{ "xml", required_argument, nullptr, 'X' },
+		{ "json", required_argument, nullptr, 'J' },
 		{ "no-parallel", no_argument, nullptr, 'N' },
 		{ nullptr, 0, nullptr, 0 }
 	};
@@ -149,8 +149,8 @@ The following are the accepted command line options:
     -v/--verbose displays more information (-q will override this if present. Specifying
         this option will also cause --no-parallel to be assumed.)
     -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
-    --xml produces no output while running, but a JUnit compatible XML when completed
-    --json produces no output while running, but a Google test compatible JSON when completed
+    ---xml=<filename> writes a JUnit test compatible XML to the given filename
+    --json=<filename> writes a Google test compatible JSON to the given filename
     --no-parallel will force all tests to be run in the same thread (This is assumed if
         the --verbose option is specified.)
 
@@ -188,8 +188,10 @@ the output for all the test cases in a suite is completed, a summary line for th
 suite will be output. Note that in order for this output to make sense, specifying --verbose
 will also imply --no-parallel.
 
-In addition specifying --xml or --json will imply --quiet so that the only output is of
-the specified format.
+For --xml or --json you can specify "-" as the filename. In that case instead of writing
+to a file the report will be written to the standard output device. Unless you have also
+specified --quiet, the report will be preceeded by a line of all "=" characters to make
+it possible to find the end of the live output and the start of the report.
 
 Filtering can be used to limit the tests that are run without having to add skip()
 statements in your code. This is most useful when you are developing/debugging a particular
@@ -224,6 +226,14 @@ The return value, when all the tests are done, will be one of the following:
 						break;
 					case 'N':
 						isParallel = false;
+						break;
+					case 'f':
+						if (!optarg) {
+							printUsageMessage(argv[0]);
+							exit(-1);
+						}
+						filter = string(optarg);
+						break;
 				}
 			}
 
@@ -234,6 +244,19 @@ The return value, when all the tests are done, will be one of the following:
 			if (isVerbose) {
 				isParallel = false;
 			}
+		}
+		return true;
+	}
+
+	// Returns true if the given string starts with the given prefix and false otherwise.
+	inline bool starts_with(const string& s, const string& prefix) noexcept {
+		return (prefix == s.substr(0, prefix.size()));
+	}
+
+	// Returns true if the test case should pass the filter and false otherwise.
+	bool passesFilter(const TestSuite& s) noexcept {
+		if (!filter.empty()) {
+			return starts_with(s.name(), filter);
 		}
 		return true;
 	}
@@ -358,7 +381,12 @@ namespace {
 
 			const auto numberOfTestSuites = testSuites.size();
 			unsigned numberOfErrors = 0, numberOfFailures = 0, numberOfSkips = 0, numberPassed = 0;
+			unsigned numberFilteredOut = 0;
 			for (const auto& ts : testSuites) {
+				if (ts.filteredOut) {
+					++numberFilteredOut;
+				}
+
 				switch (ts.suite->_implementation()->result()) {
 					case '.':	++numberPassed; break;
 					case 'S':	++numberOfSkips; break;
@@ -368,10 +396,10 @@ namespace {
 			}
 
 			if (!numberOfFailures && !numberOfErrors && !numberOfSkips) {
-				cout << "  PASSED all " << numberOfTestSuites << " test suites." << endl;
+				cout << "  PASSED all " << (numberOfTestSuites-numberFilteredOut) << " test suites.";
 			}
 			else {
-				cout << "  Passed " << numberPassed << " of " << numberOfTestSuites << " test suites";
+				cout << "  Passed " << numberPassed << " of " << (numberOfTestSuites-numberFilteredOut) << " test suites";
 				if (numberOfSkips > 0) {
 					cout << ", " << numberOfSkips << " skipped";
 				}
@@ -381,8 +409,13 @@ namespace {
 				if (numberOfFailures > 0) {
 					cout << ", " << numberOfFailures << " failed";
 				}
-				cout << "." << endl;
+				cout << ".";
 			}
+
+			if (numberFilteredOut > 0) {
+				cout << "  (" << numberFilteredOut << " filtered out)";
+			}
+			cout << endl;
 
 			if (!isVerbose) {
 				// If we are not verbose we need to identify the errors and failures. If
@@ -499,6 +532,11 @@ namespace {
 	}
 
 	void runTestSuite(TestSuiteWrapper* wrapper) {
+		if (!passesFilter(*wrapper->suite)) {
+			wrapper->filteredOut = true;
+			return;
+		}
+
 		printTestSuiteHeader(*wrapper->suite);
 		auto* impl = wrapper->suite->_implementation();
 		impl->addBeforeAndAfterAll();

@@ -33,8 +33,8 @@ namespace kss {
 		 -q/--quiet suppress test result output. (Useful if all you want is the return value.)
 		 -v/--verbose displays more information (-q will override this if present)
 		 -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
-		 --xml produces no output while running, but a JUnit compatible XML when completed
-		 --json produces no output while running, but a Google test compatible JSON when completed
+		 --xml=<filename> writes a JUnit test compatible XML to the given filename
+		 --json=<filename> writes a Google test compatible JSON to the given filename
 		 --no-parallel if you want to force everything to run serially (assumed if --verbose is specified)
 
 		 Returns one of the following values:
