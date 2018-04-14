@@ -15,11 +15,13 @@
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
+#include <ctime>
 #include <exception>
 #include <fstream>
 #include <future>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <ostream>
 #include <set>
 #include <string>
@@ -53,8 +55,13 @@ namespace {
 	};
 
 	struct TestSuiteWrapper {
-		TestSuite* 	suite;
-		bool		filteredOut = false;
+		TestSuite* 				suite;
+		bool					filteredOut = false;
+		string					timestamp;
+		fractional_seconds_t	durationOfTestSuite;
+		unsigned				numberOfErrors = 0;
+		unsigned				numberOfFailures= 0;
+		unsigned				numberOfSkippedTests = 0;
 
 		bool operator<(const TestSuiteWrapper& rhs) const noexcept {
 			return suite->name() < rhs.suite->name();
@@ -72,7 +79,9 @@ namespace {
 
 	// Summary of test results.
 	struct TestResultSummary {
+		mutex					lock;
 		string 					nameOfTestRun;
+		string					nameOfHost;
 		fractional_seconds_t	durationOfTestRun;
 		unsigned				numberOfErrors = 0;
 		unsigned				numberOfFailures = 0;
@@ -304,12 +313,30 @@ The return value, when all the tests are done, will be one of the following:
 		if (strm.bad()) throwProcessingError(filename, "Failed while writing");
 	}
 
+	// Return the time that fn took to run.
 	fractional_seconds_t time_of_execution(function<void ()> fn) {
 		const auto start = chrono::high_resolution_clock::now();
 		fn();
 		return chrono::duration_cast<fractional_seconds_t>(chrono::high_resolution_clock::now() - start);
 	}
 
+	// Return the current timestamp in ISO 8601 format.
+	string now() {
+		time_t now;
+		::time(&now);
+		char buf[sizeof "9999-99-99T99:99:99Z "];
+		strftime(buf, sizeof(buf), "%FT%TZ", ::gmtime(&now));
+		return string(buf);
+	}
+
+	// Returns the hostname of the machine.
+	string hostname() noexcept {
+		char name[100];
+		if (gethostname(name, sizeof(name)-1) == -1) {
+			return "localhost";
+		}
+		return name;
+	}
 }
 
 
@@ -367,10 +394,18 @@ struct TestSuite::Impl {
 			t.errors.push_back("Unknown exception");
 		}
 
+		// Update the counters.
 		currentTest = nullptr;
-		reportSummary.numberOfErrors += t.errors.size();
-		reportSummary.numberOfFailures += t.failures.size();
-		reportSummary.numberOfAssertions += t.assertions;
+		currentSuite->numberOfErrors += t.errors.size();
+		currentSuite->numberOfFailures += t.failures.size();
+		if (t.skipped) ++currentSuite->numberOfSkippedTests;
+
+		{
+			lock_guard<mutex> l(reportSummary.lock);
+			reportSummary.numberOfErrors += t.errors.size();
+			reportSummary.numberOfFailures += t.failures.size();
+			reportSummary.numberOfAssertions += t.assertions;
+		}
 	}
 
 	// Returns the test suite result as one of the following:
@@ -556,6 +591,24 @@ namespace {
 		attrs["tests"] = to_string(reportSummary.numberOfAssertions - reportSummary.numberOfFailures);
 		attrs["time"] = to_string(reportSummary.durationOfTestRun.count());
 		startTag(strm, 0, "testsuites", attrs);
+
+		int id = 0;
+		for (const auto& ts : testSuites) {
+			attrs.clear();
+			attrs["name"] = ts.suite->name();
+			attrs["tests"] = to_string(ts.suite->_implementation()->tests.size());
+			attrs["errors"] = to_string(ts.numberOfErrors);
+			attrs["failures"] = to_string(ts.numberOfFailures);
+			attrs["hostname"] = reportSummary.nameOfHost;
+			attrs["id"] = to_string(id++);
+			attrs["skipped"] = to_string(ts.numberOfSkippedTests);
+			attrs["time"] = to_string(ts.durationOfTestSuite.count());
+			attrs["timestamp"] = ts.timestamp;
+			startTag(strm, 1, "testsuite", attrs);
+
+			endTag(strm, 1, "testsuite");
+		}
+
 		endTag(strm, 0, "testsuites");
 	}
 
@@ -584,40 +637,34 @@ namespace {
 		if (isVerbose) cout << "  " << ts.name() << endl;
 	}
 
-	void printTestSuiteSummary(const TestSuite& ts) {
+	void printTestSuiteSummary(const TestSuiteWrapper& w) {
 		if (!isQuiet) {
-			const auto* impl = ts._implementation();
+			const auto* impl = w.suite->_implementation();
 			if (isVerbose) {
 				unsigned numberOfAssertions = 0;
-				unsigned numberSkipped = 0;
-				unsigned numberOfErrors = 0;
-				unsigned numberOfFailures = 0;
 				for (const auto& t : impl->tests) {
 					numberOfAssertions += t.assertions;
-					if (t.skipped) ++numberSkipped;
-					numberOfErrors += t.errors.size();
-					numberOfFailures += t.failures.size();
 				}
 
-				if (!numberOfErrors && !numberOfFailures) {
+				if (!w.numberOfErrors && !w.numberOfFailures) {
 					cout << "    PASSED all " << numberOfAssertions << " checks";
 				}
 				else {
 					cout << "    Passed " << numberOfAssertions << " checks";
 				}
 
-				if (numberSkipped > 0) {
-					cout << ", " << numberSkipped << " test " << (numberSkipped == 1 ? "case" : "cases") << " SKIPPED";
+				if (w.numberOfSkippedTests > 0) {
+					cout << ", " << w.numberOfSkippedTests << " test " << (w.numberOfSkippedTests == 1 ? "case" : "cases") << " SKIPPED";
 				}
-				if (numberOfErrors > 0) {
-					cout << ", " << numberOfErrors << (numberOfErrors == 1 ? " error" : " errors");
+				if (w.numberOfErrors > 0) {
+					cout << ", " << w.numberOfErrors << (w.numberOfErrors == 1 ? " error" : " errors");
 				}
-				if (numberOfFailures > 0) {
-					cout << ", " << numberOfFailures << " FAILED";
+				if (w.numberOfFailures > 0) {
+					cout << ", " << w.numberOfFailures << " FAILED";
 				}
 				cout << "." << endl;
 
-				if (numberOfErrors > 0) {
+				if (w.numberOfErrors > 0) {
 					cout << "    Errors:" << endl;
 					for (const auto& t : impl->tests) {
 						for (const auto& err : t.errors) {
@@ -625,7 +672,7 @@ namespace {
 						}
 					}
 				}
-				if (numberOfFailures > 0) {
+				if (w.numberOfFailures > 0) {
 					cout << "    Failures:" << endl;
 					for (const auto& t : impl->tests) {
 						for (const auto& f : t.failures) {
@@ -665,17 +712,22 @@ namespace {
 			return;
 		}
 
+		wrapper->timestamp = now();
 		printTestSuiteHeader(*wrapper->suite);
 		auto* impl = wrapper->suite->_implementation();
 		impl->addBeforeAndAfterAll();
 		currentSuite = wrapper;
-		for (auto& t : impl->tests) {
-			printTestCaseHeader(t);
-			impl->runTestCase(t);
-			printTestCaseSummary(t);
-		}
+
+		wrapper->durationOfTestSuite = time_of_execution([&]{
+			for (auto& t : impl->tests) {
+				printTestCaseHeader(t);
+				impl->runTestCase(t);
+				printTestCaseSummary(t);
+			}
+		});
+
 		currentSuite = nullptr;
-		printTestSuiteSummary(*wrapper->suite);
+		printTestSuiteSummary(*wrapper);
 	}
 }
 
@@ -684,6 +736,7 @@ namespace kss { namespace testing {
 
 	int run(const string& testRunName, int argc, const char *const *argv) {
 		reportSummary.nameOfTestRun = testRunName;
+		reportSummary.nameOfHost = hostname();
 		if (parseCommandLine(argc, argv)) {
 			printTestRunHeader();
 			sort(testSuites.begin(), testSuites.end());
