@@ -805,44 +805,38 @@ namespace {
 namespace kss { namespace testing {
 
 	int run(const string& testRunName, int argc, const char *const *argv) {
-		try {
-			reportSummary.nameOfTestRun = testRunName;
-			reportSummary.nameOfHost = hostname();
-			if (parseCommandLine(argc, argv)) {
-				printTestRunHeader();
-				sort(testSuites.begin(), testSuites.end());
+		reportSummary.nameOfTestRun = testRunName;
+		reportSummary.nameOfHost = hostname();
+		if (parseCommandLine(argc, argv)) {
+			printTestRunHeader();
+			sort(testSuites.begin(), testSuites.end());
 
-				reportSummary.durationOfTestRun = time_of_execution([&]{
-					vector<future<bool>> futures;
+			reportSummary.durationOfTestRun = time_of_execution([&]{
+				vector<future<bool>> futures;
 
-					for (auto& ts : testSuites) {
-						if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
-							runTestSuite(&ts);
-						}
-						else {
-							TestSuiteWrapper* tsw = &ts;
-							futures.push_back(async([tsw]{
-								runTestSuite(tsw);
-								return true;
-							}));
-						}
+				for (auto& ts : testSuites) {
+					if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
+						runTestSuite(&ts);
 					}
-
-					if (!futures.empty()) {
-						for (auto& fut : futures) {
-							fut.get();
-						}
+					else {
+						TestSuiteWrapper* tsw = &ts;
+						futures.push_back(async([tsw]{
+							runTestSuite(tsw);
+							return true;
+						}));
 					}
-				});
+				}
 
-				printTestRunSummary();
-			}
-			return testResultCode();
+				if (!futures.empty()) {
+					for (auto& fut : futures) {
+						fut.get();
+					}
+				}
+			});
+
+			printTestRunSummary();
 		}
-		catch (const exception& e) {
-			cerr << demangle(e) << ": " << e.what() << endl;
-			return -1;
-		}
+		return testResultCode();
 	}
 
 	void skip() {

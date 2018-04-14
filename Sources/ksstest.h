@@ -43,7 +43,7 @@ namespace kss {
 		  >0 - the number of tests that failed
 
 		 @throws std::invalid_argument if any of the arguments are missing or wrong.
-		 @throws std::runtime_error if something goes wrong with the run itself.
+		 @throws std::system_error or std::runtime_exception if something goes wrong with the run itself.
 		 */
 		int run(const std::string& testRunName, int argc, const char* const* argv);
 

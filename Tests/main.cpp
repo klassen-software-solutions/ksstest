@@ -10,7 +10,16 @@
 // the same.
 
 #include <ksstest.h>
+#include <iostream>
+
+using namespace std;
 
 int main(int argc, char* argv[]) {
-	return kss::testing::run("KSSTest", argc, argv);
+	try {
+		return kss::testing::run("KSSTest", argc, argv);
+	}
+	catch (const exception& e) {
+		cerr << e.what() << endl;
+		return -1;
+	}
 }
