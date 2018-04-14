@@ -370,12 +370,14 @@ struct TestSuite::Impl {
 		if (auto* hba = as<HasBeforeAll>(parent)) {
 			TestCaseWrapper wrapper;
 			wrapper.name = "BeforeAll";
+			wrapper.owner = parent;
 			wrapper.fn = [=](TestSuite& suite) { hba->beforeAll(); };
 			tests.insert(tests.begin(), move(wrapper));
 		}
 		if (auto* haa = as<HasAfterAll>(parent)) {
 			TestCaseWrapper wrapper;
 			wrapper.name = "AfterAll";
+			wrapper.owner = parent;
 			wrapper.fn = [=](TestSuite& suite) { haa->afterAll(); };
 			tests.push_back(move(wrapper));
 		}

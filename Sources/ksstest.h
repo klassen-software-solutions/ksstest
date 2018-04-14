@@ -24,23 +24,8 @@ namespace kss {
 		// MARK: Running
 
 		/*!
-		 Run the currently registered tests and report their results.
-
-		 Command line arguments (unsupported arguments are quietly ignored allowing
-		 you to add to this list):
-
-		 -h/--help displays a usage message
-		 -q/--quiet suppress test result output. (Useful if all you want is the return value.)
-		 -v/--verbose displays more information (-q will override this if present)
-		 -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
-		 --xml=<filename> writes a JUnit test compatible XML to the given filename
-		 --json=<filename> writes a Google test compatible JSON to the given filename
-		 --no-parallel if you want to force everything to run serially (assumed if --verbose is specified)
-
-		 Returns one of the following values:
-		  0 - all tests passed
-		  -1 - one or more error conditions were reported
-		  >0 - the number of tests that failed
+		 Run the currently registered tests and report their results. Pass the command
+		 line argument "-h" or "--help" for a description of its use.
 
 		 @throws std::invalid_argument if any of the arguments are missing or wrong.
 		 @throws std::system_error or std::runtime_exception if something goes wrong with the run itself.
@@ -49,7 +34,7 @@ namespace kss {
 
 		/*!
 		 Call this within a test if you want to skip it. Typically this would be the first
-		 line of your test, but it does not have to be. The the will be aborted at the
+		 line of your test, but it does not have to be. The test will be aborted at the
 		 point this is called, and the test will be marked as skipped regardless of whether
 		 it had passed or failed up to that point.
 
@@ -58,7 +43,7 @@ namespace kss {
 		 for that suite will run, but will still be marked as skipped.
 
 		 Note that the skip is implemented by throwing an exception and must not be caught
-		 or the skip will not be performed. The exception is NOT subclassed from std::exception,
+		 or the skip will not be performed. This exception is NOT subclassed from std::exception,
 		 so as long as your code does not catch (...) it will be fine.
 		 */
 		void skip();
@@ -210,7 +195,7 @@ namespace kss {
 		// MARK: TestSuite Modifiers
 
 		// Most of the time you will likely use TestSuite "as is" just providing the
-		// tests in the constructor. However, you can modify it's default behavious by
+		// tests in the constructor. However, you can modify it's default behaviour by
 		// creating a subclass that inherits from one or more of the following interfaces.
 
 		/*!
