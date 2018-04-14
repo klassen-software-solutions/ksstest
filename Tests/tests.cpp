@@ -52,5 +52,12 @@ static TestSuite ts2("Another TestSuite", {
 	make_pair("mytest", [](TestSuite& self) {
 		skip();
 		throw runtime_error("uncaught");
+	}),
+	make_pair("myTestWithError", [](TestSuite&) {
+		skip();
+		throw runtime_error("uncaught");
+	}),
+	make_pair("myTestWithFailure", [](TestSuite&) {
+		KSS_ASSERT(false);
 	})
 });

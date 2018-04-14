@@ -13,10 +13,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <exception>
+#include <fstream>
 #include <future>
 #include <iostream>
+#include <map>
+#include <ostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -29,6 +33,56 @@
 
 using namespace std;
 using namespace kss::testing;
+
+// MARK: State of the world
+
+namespace {
+	typedef chrono::duration<double, std::chrono::seconds::period> fractional_seconds_t;
+
+	struct TestCaseWrapper {
+		string					name;
+		TestSuite::test_case_fn	fn;
+		unsigned int			assertions = 0;
+		vector<string>			errors;
+		vector<string>			failures;
+		bool					skipped = false;
+
+		bool operator<(const TestCaseWrapper& rhs) const noexcept {
+			return name < rhs.name;
+		}
+	};
+
+	struct TestSuiteWrapper {
+		TestSuite* 	suite;
+		bool		filteredOut = false;
+
+		bool operator<(const TestSuiteWrapper& rhs) const noexcept {
+			return suite->name() < rhs.suite->name();
+		}
+	};
+
+	static vector<TestSuiteWrapper> 		testSuites;
+	thread_local static TestSuiteWrapper*	currentSuite = nullptr;
+	thread_local static TestCaseWrapper*	currentTest = nullptr;
+	static bool								isQuiet = false;
+	static bool								isVerbose = false;
+	static bool								isParallel = true;
+	static string							filter;
+	static string							xmlReportFilename;
+
+	// Summary of test results.
+	struct TestResultSummary {
+		string 					nameOfTestRun;
+		fractional_seconds_t	durationOfTestRun;
+		unsigned				numberOfErrors = 0;
+		unsigned				numberOfFailures = 0;
+		unsigned				numberOfAssertions = 0;
+	};
+	static TestResultSummary reportSummary;
+}
+
+
+// MARK: Internal Utilities
 
 namespace {
 
@@ -81,37 +135,6 @@ namespace {
 	void my_terminate_handler() {
 		_exit(0);           // Correct response.
 	}
-
-	struct TestCaseWrapper {
-		string					name;
-		TestSuite::test_case_fn	fn;
-		unsigned int			assertions = 0;
-		vector<string>			errors;
-		vector<string>			failures;
-		bool					skipped = false;
-
-		bool operator<(const TestCaseWrapper& rhs) const noexcept {
-			return name < rhs.name;
-		}
-	};
-
-	struct TestSuiteWrapper {
-		TestSuite* 	suite;
-		bool		filteredOut = false;
-
-		bool operator<(const TestSuiteWrapper& rhs) const noexcept {
-			return suite->name() < rhs.suite->name();
-		}
-	};
-
-	// State of the world.
-	static vector<TestSuiteWrapper> 		testSuites;
-	thread_local static TestSuiteWrapper*	currentSuite = nullptr;
-	thread_local static TestCaseWrapper*	currentTest = nullptr;
-	static bool								isQuiet = false;
-	static bool								isVerbose = false;
-	static bool								isParallel = true;
-	static string							filter;
 
 	// Parse the command line. Returns true if we should continue or false if we
 	// should exit.
@@ -234,6 +257,13 @@ The return value, when all the tests are done, will be one of the following:
 						}
 						filter = string(optarg);
 						break;
+					case 'X':
+						if (!optarg) {
+							printUsageMessage(argv[0]);
+							exit(-1);
+						}
+						xmlReportFilename = string(optarg);
+						break;
 				}
 			}
 
@@ -260,6 +290,26 @@ The return value, when all the tests are done, will be one of the following:
 		}
 		return true;
 	}
+
+	// Write a file, throwing an exception if there is a problem.
+	inline void throwProcessingError(const string& filename, const string& what_arg) {
+		throw system_error(errno, system_category(), what_arg + " " + filename);
+	}
+
+	void write_file(const string& filename, function<void (ofstream&)> fn) {
+		errno = 0;
+		ofstream strm(filename);
+		if (!strm.is_open()) throwProcessingError(filename, "Failed to open");
+		fn(strm);
+		if (strm.bad()) throwProcessingError(filename, "Failed while writing");
+	}
+
+	fractional_seconds_t time_of_execution(function<void ()> fn) {
+		const auto start = chrono::high_resolution_clock::now();
+		fn();
+		return chrono::duration_cast<fractional_seconds_t>(chrono::high_resolution_clock::now() - start);
+	}
+
 }
 
 
@@ -316,7 +366,11 @@ struct TestSuite::Impl {
 			}
 			t.errors.push_back("Unknown exception");
 		}
+
 		currentTest = nullptr;
+		reportSummary.numberOfErrors += t.errors.size();
+		reportSummary.numberOfFailures += t.failures.size();
+		reportSummary.numberOfAssertions += t.assertions;
 	}
 
 	// Returns the test suite result as one of the following:
@@ -327,18 +381,17 @@ struct TestSuite::Impl {
 	char result() const noexcept {
 		char res = '.';
 		for (const auto& t : tests) {
-			if (t.skipped) {
-				res = 'S';
-				break;
-			}
-			else if (!t.errors.empty()) {
-				assert(res != 'S');
+			if (!t.errors.empty()) {
 				res = 'E';
 			}
 			else if (!t.failures.empty()) {
-				assert(res != 'S');
 				if (res != 'E') {
 					res = 'F';
+				}
+			}
+			else if (t.skipped) {
+				if (res == '.') {
+					res = 'S';
 				}
 			}
 		}
@@ -360,9 +413,9 @@ struct TestSuite::Impl {
 // MARK: Test reporting
 
 namespace {
-	void printTestRunHeader(const string& testRunName) {
+	void printTestRunHeader() {
 		if (!isQuiet) {
-			cout << "Running test suites for " << testRunName << "..." << endl;;
+			cout << "Running test suites for " << reportSummary.nameOfTestRun << "..." << endl;;
 			if (!isVerbose) {
 				cout << "  ";
 				flush(cout);	// Need flush before we start any threads.
@@ -370,7 +423,7 @@ namespace {
 		}
 	}
 
-	void printTestRunSummary() {
+	void outputStandardSummary() {
 		if (!isQuiet) {
 			if (isParallel) {
 				flush(cout);	// Ensure all the thread output is flushed.
@@ -444,6 +497,89 @@ namespace {
 		}
 	}
 
+	using attributes_t = map<string, string>;
+
+	// Based on code found at
+	// https://stackoverflow.com/questions/5665231/most-efficient-way-to-escape-xml-html-in-c-string
+	void encodeXml(string& data) {
+		string buffer;
+		buffer.reserve(data.size());
+		for(size_t pos = 0; pos != data.size(); ++pos) {
+			switch(data[pos]) {
+				case '&':  buffer.append("&amp;");       break;
+				case '\"': buffer.append("&quot;");      break;
+				case '\'': buffer.append("&apos;");      break;
+				case '<':  buffer.append("&lt;");        break;
+				case '>':  buffer.append("&gt;");        break;
+				default:   buffer.append(&data[pos], 1); break;
+			}
+		}
+		data.swap(buffer);
+	}
+
+	void indent(ostream& strm, int sizeOfIndent) {
+		while (sizeOfIndent-- > 0) strm << ' ';
+	}
+
+	void startTag(ostream& strm, int indentLevel, const string& name, attributes_t& attrs) {
+		indent(strm, indentLevel*2);
+		strm << "<" << name;
+		if (attrs.empty()) {
+			strm << '>' << endl;
+		}
+		else {
+			for (auto attr : attrs) {
+				encodeXml(attr.second);
+				strm << ' ' << attr.first << "=\"" << attr.second << '"';
+			}
+			strm << '>' << endl;
+		}
+	}
+
+	void startTag(ostream& strm, int indentLevel, const string& name) {
+		attributes_t attrs;
+		startTag(strm, indentLevel, name, attrs);
+	}
+
+	void endTag(ostream& strm, int indentLevel, const string& name) {
+		indent(strm, indentLevel*2);
+		strm << "</" << name << ">" << endl;
+	}
+
+	void writeXmlReportToStream(ostream& strm) {
+		strm << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+
+		attributes_t attrs;
+		attrs["errors"] = to_string(reportSummary.numberOfErrors);
+		attrs["failures"] = to_string(reportSummary.numberOfFailures);
+		attrs["name"] = reportSummary.nameOfTestRun;
+		attrs["tests"] = to_string(reportSummary.numberOfAssertions - reportSummary.numberOfFailures);
+		attrs["time"] = to_string(reportSummary.durationOfTestRun.count());
+		startTag(strm, 0, "testsuites", attrs);
+		endTag(strm, 0, "testsuites");
+	}
+
+	void printXmlReport() {
+		if (!isQuiet) cout << "======================================" << endl;
+		if (xmlReportFilename == "-") {
+			writeXmlReportToStream(cout);
+		}
+		else {
+			write_file(xmlReportFilename, [&](ofstream& strm) {
+				writeXmlReportToStream(strm);
+			});
+		}
+	}
+
+	void printTestRunSummary() {
+		if (!isQuiet) {
+			outputStandardSummary();
+		}
+		if (!xmlReportFilename.empty()) {
+			printXmlReport();
+		}
+	}
+
 	void printTestSuiteHeader(const TestSuite& ts) {
 		if (isVerbose) cout << "  " << ts.name() << endl;
 	}
@@ -474,7 +610,7 @@ namespace {
 					cout << ", " << numberSkipped << " test " << (numberSkipped == 1 ? "case" : "cases") << " SKIPPED";
 				}
 				if (numberOfErrors > 0) {
-					cout << ", " << numberOfErrors << (numberOfErrors == 1 ? "error" : "errors");
+					cout << ", " << numberOfErrors << (numberOfErrors == 1 ? " error" : " errors");
 				}
 				if (numberOfFailures > 0) {
 					cout << ", " << numberOfFailures << " FAILED";
@@ -517,18 +653,10 @@ namespace {
 	}
 
 	int testResultCode() {
-		int numberOfFailures = 0;
-		for (const auto& ts : testSuites) {
-			const auto& impl = ts.suite->_implementation();
-			const auto res = impl->result();
-			if (res == 'E') {
-				return -1;
-			}
-			else if (res == 'F') {
-				numberOfFailures += impl->numberOfFailures();
-			}
+		if (reportSummary.numberOfErrors > 0) {
+			return -1;
 		}
-		return numberOfFailures;
+		return reportSummary.numberOfFailures;
 	}
 
 	void runTestSuite(TestSuiteWrapper* wrapper) {
@@ -555,28 +683,34 @@ namespace {
 namespace kss { namespace testing {
 
 	int run(const string& testRunName, int argc, const char *const *argv) {
+		reportSummary.nameOfTestRun = testRunName;
 		if (parseCommandLine(argc, argv)) {
-			printTestRunHeader(testRunName);
+			printTestRunHeader();
 			sort(testSuites.begin(), testSuites.end());
-			vector<future<bool>> futures;
-			for (auto& ts : testSuites) {
-				if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
-					runTestSuite(&ts);
+
+			reportSummary.durationOfTestRun = time_of_execution([&]{
+				vector<future<bool>> futures;
+
+				for (auto& ts : testSuites) {
+					if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
+						runTestSuite(&ts);
+					}
+					else {
+						TestSuiteWrapper* tsw = &ts;
+						futures.push_back(async([tsw]{
+							runTestSuite(tsw);
+							return true;
+						}));
+					}
 				}
-				else {
-					TestSuiteWrapper* tsw = &ts;
-					futures.push_back(async([tsw]{
-						runTestSuite(tsw);
-						return true;
-					}));
+
+				if (!futures.empty()) {
+					for (auto& fut : futures) {
+						fut.get();
+					}
 				}
-			}
-			
-			if (!futures.empty()) {
-				for (auto& fut : futures) {
-					fut.get();
-				}
-			}
+			});
+
 			printTestRunSummary();
 		}
 		return testResultCode();
