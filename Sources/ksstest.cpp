@@ -41,13 +41,38 @@ using namespace kss::testing;
 namespace {
 	typedef chrono::duration<double, std::chrono::seconds::period> fractional_seconds_t;
 
+	// Name demangling.
+	template <typename T>
+	string demangle(const T& t = T()) {
+		int status;
+		return abi::__cxa_demangle(typeid(t).name(), 0, 0, &status);
+	}
+
+	struct TestError {
+		string errorType;			// The name of the exception.
+		string errorMessage;		// The what() of the exception.
+
+		operator string() const {
+			return errorType + ": " + errorMessage;
+		}
+
+		static TestError makeError(const exception& e) {
+			TestError ret;
+			ret.errorType = demangle(e);
+			ret.errorMessage = e.what();
+			return ret;
+		}
+	};
+
 	struct TestCaseWrapper {
 		string					name;
+		TestSuite*				owner = nullptr;
 		TestSuite::test_case_fn	fn;
 		unsigned int			assertions = 0;
-		vector<string>			errors;
+		vector<TestError>		errors;
 		vector<string>			failures;
 		bool					skipped = false;
+		fractional_seconds_t	durationOfTest;
 
 		bool operator<(const TestCaseWrapper& rhs) const noexcept {
 			return name < rhs.name;
@@ -94,13 +119,6 @@ namespace {
 // MARK: Internal Utilities
 
 namespace {
-
-	// Name demangling.
-	template <typename T>
-	string demangle(const T& t = T()) {
-		int status;
-		return abi::__cxa_demangle(typeid(t).name(), 0, 0, &status);
-	}
 
 	// Basename of a path.
 	string basename(const string &path) {
@@ -367,13 +385,15 @@ struct TestSuite::Impl {
 	void runTestCase(TestCaseWrapper& t) {
 		currentTest = &t;
 		try {
-			if (auto* hbe = as<HasBeforeEach>(parent)) {
-				if (t.name != "BeforeAll" && t.name != "AfterAll") hbe->beforeEach();
-			}
-			t.fn(*parent);
-			if (auto* haa = as<HasAfterEach>(parent)) {
-				if (t.name != "BeforeAll" && t.name != "AfterAll") haa->afterEach();
-			}
+			t.durationOfTest = time_of_execution([&]{
+				if (auto* hbe = as<HasBeforeEach>(parent)) {
+					if (t.name != "BeforeAll" && t.name != "AfterAll") hbe->beforeEach();
+				}
+				t.fn(*parent);
+				if (auto* haa = as<HasAfterEach>(parent)) {
+					if (t.name != "BeforeAll" && t.name != "AfterAll") haa->afterEach();
+				}
+			});
 		}
 		catch (const SkipTestCase&) {
 			t.skipped = true;
@@ -385,13 +405,15 @@ struct TestSuite::Impl {
 			if (isVerbose) {
 				cout << "E";
 			}
-			t.errors.push_back(demangle(e) + ": " + e.what());
+			t.errors.push_back(TestError::makeError(e));
 		}
 		catch (...) {
 			if (isVerbose) {
 				cout << "E";
 			}
-			t.errors.push_back("Unknown exception");
+			TestError err;
+			err.errorMessage = "Unknown exception";
+			t.errors.push_back(err);
 		}
 
 		// Update the counters.
@@ -513,7 +535,7 @@ namespace {
 					for (const auto& ts : testSuites) {
 						for (const auto& t : ts.suite->_implementation()->tests) {
 							for (const auto& err : t.errors) {
-								cout << "    " << err << endl;
+								cout << "    " << string(err) << endl;
 							}
 						}
 					}
@@ -529,6 +551,8 @@ namespace {
 					}
 				}
 			}
+
+			cout << "  Completed in " << reportSummary.durationOfTestRun.count() << "s." << endl;
 		}
 	}
 
@@ -571,19 +595,36 @@ namespace {
 		}
 	}
 
-	void startTag(ostream& strm, int indentLevel, const string& name) {
-		attributes_t attrs;
-		startTag(strm, indentLevel, name, attrs);
-	}
-
 	void endTag(ostream& strm, int indentLevel, const string& name) {
 		indent(strm, indentLevel*2);
 		strm << "</" << name << ">" << endl;
 	}
 
+	void tag(ostream& strm, int indentLevel, const string& name, attributes_t& attrs) {
+		indent(strm, indentLevel*2);
+		strm << "<" << name;
+		if (attrs.empty()) {
+			strm << "/>" << endl;
+		}
+		else {
+			for (auto attr : attrs) {
+				encodeXml(attr.second);
+				strm << ' ' << attr.first << "=\"" << attr.second << '"';
+			}
+			strm << "/>" << endl;
+		}
+	}
+
+	void tag(ostream& strm, int indentLevel, const string& name) {
+		attributes_t attrs;
+		tag(strm, indentLevel, name, attrs);
+	}
+
+
 	void writeXmlReportToStream(ostream& strm) {
 		strm << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
 
+		// testsuites
 		attributes_t attrs;
 		attrs["errors"] = to_string(reportSummary.numberOfErrors);
 		attrs["failures"] = to_string(reportSummary.numberOfFailures);
@@ -592,6 +633,7 @@ namespace {
 		attrs["time"] = to_string(reportSummary.durationOfTestRun.count());
 		startTag(strm, 0, "testsuites", attrs);
 
+		// testsuite
 		int id = 0;
 		for (const auto& ts : testSuites) {
 			attrs.clear();
@@ -606,6 +648,33 @@ namespace {
 			attrs["timestamp"] = ts.timestamp;
 			startTag(strm, 1, "testsuite", attrs);
 
+			// testcase
+			for (const auto& tc : ts.suite->_implementation()->tests) {
+				attrs.clear();
+				attrs["name"] = tc.name;
+				attrs["assertions"] = to_string(tc.assertions);
+				attrs["classname"] = (tc.owner ? demangle(*tc.owner) : string("none"));
+				attrs["time"] = to_string(tc.durationOfTest.count());
+				startTag(strm, 2, "testcase", attrs);
+
+				if (tc.skipped) tag(strm, 3, "skipped");
+
+				for (const auto& err : tc.errors) {
+					attrs.clear();
+					attrs["message"] = err.errorMessage;
+					if (!err.errorType.empty()) attrs["type"] = err.errorType;
+					tag(strm, 3, "error", attrs);
+				}
+
+				for (const auto& failure : tc.failures) {
+					attrs.clear();
+					attrs["message"] = failure;
+					tag(strm, 3, "failure", attrs);
+				}
+
+				endTag(strm, 2, "testcase");
+			}
+
 			endTag(strm, 1, "testsuite");
 		}
 
@@ -613,14 +682,15 @@ namespace {
 	}
 
 	void printXmlReport() {
-		if (!isQuiet) cout << "======================================" << endl;
 		if (xmlReportFilename == "-") {
+			if (!isQuiet) cout << "======================================" << endl;
 			writeXmlReportToStream(cout);
 		}
 		else {
 			write_file(xmlReportFilename, [&](ofstream& strm) {
 				writeXmlReportToStream(strm);
 			});
+			if (!isQuiet) cout << "  Wrote XML report to " << xmlReportFilename << endl;
 		}
 	}
 
@@ -668,7 +738,7 @@ namespace {
 					cout << "    Errors:" << endl;
 					for (const auto& t : impl->tests) {
 						for (const auto& err : t.errors) {
-							cout << "      " << err << endl;
+							cout << "      " << string(err) << endl;
 						}
 					}
 				}
@@ -735,38 +805,44 @@ namespace {
 namespace kss { namespace testing {
 
 	int run(const string& testRunName, int argc, const char *const *argv) {
-		reportSummary.nameOfTestRun = testRunName;
-		reportSummary.nameOfHost = hostname();
-		if (parseCommandLine(argc, argv)) {
-			printTestRunHeader();
-			sort(testSuites.begin(), testSuites.end());
+		try {
+			reportSummary.nameOfTestRun = testRunName;
+			reportSummary.nameOfHost = hostname();
+			if (parseCommandLine(argc, argv)) {
+				printTestRunHeader();
+				sort(testSuites.begin(), testSuites.end());
 
-			reportSummary.durationOfTestRun = time_of_execution([&]{
-				vector<future<bool>> futures;
+				reportSummary.durationOfTestRun = time_of_execution([&]{
+					vector<future<bool>> futures;
 
-				for (auto& ts : testSuites) {
-					if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
-						runTestSuite(&ts);
+					for (auto& ts : testSuites) {
+						if (!isParallel || as<MustNotBeParallel>(ts.suite)) {
+							runTestSuite(&ts);
+						}
+						else {
+							TestSuiteWrapper* tsw = &ts;
+							futures.push_back(async([tsw]{
+								runTestSuite(tsw);
+								return true;
+							}));
+						}
 					}
-					else {
-						TestSuiteWrapper* tsw = &ts;
-						futures.push_back(async([tsw]{
-							runTestSuite(tsw);
-							return true;
-						}));
-					}
-				}
 
-				if (!futures.empty()) {
-					for (auto& fut : futures) {
-						fut.get();
+					if (!futures.empty()) {
+						for (auto& fut : futures) {
+							fut.get();
+						}
 					}
-				}
-			});
+				});
 
-			printTestRunSummary();
+				printTestRunSummary();
+			}
+			return testResultCode();
 		}
-		return testResultCode();
+		catch (const exception& e) {
+			cerr << demangle(e) << ": " << e.what() << endl;
+			return -1;
+		}
 	}
 
 	void skip() {
@@ -835,6 +911,7 @@ TestSuite::TestSuite(const string& testSuiteName,
 
 	for (auto& p : fns) {
 		TestCaseWrapper wrapper;
+		wrapper.owner = this;
 		wrapper.name = p.first;
 		wrapper.fn = p.second;
 		_impl->tests.push_back(move(wrapper));
