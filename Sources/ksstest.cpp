@@ -19,11 +19,13 @@
 #include <exception>
 #include <fstream>
 #include <future>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <mutex>
 #include <ostream>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -35,6 +37,180 @@
 
 using namespace std;
 using namespace kss::testing;
+
+// MARK: Simple JSON streaming from kssutil.
+
+namespace { namespace json {
+
+	/*!
+	 This namespace provides methods for efficiently creating JSON output. The
+	 requirements for this project were as follows:
+
+	 1. Single-file header-only implementation suitable for embedding into other projects.
+	 2. No dependancies other than a modern C++ compiler (i.e. no third-party libraries).
+	 3. Ability to stream JSON data without having to have the entire thing in memory.
+	 4. Keys can be assumed to be strings.
+	 5. Values will be assumed to be numbers if they "look like" a number.
+	 6. Children will always be in arrays.
+
+	 The intention is not a full-grown JSON package (i.e. it is not the equivalent
+	 of kss::util::json::Document), but rather to be able to create JSON output
+	 efficiently.
+	 */
+	namespace simple_writer {
+
+		using namespace std;
+
+		struct node;
+
+		/*!
+		 A JSON child is represented by a key and a json_t generator function. The function
+		 should return a json_t* with each call. The pointer must remain valid until the
+		 next call. When there are no more children, it should return nullptr.
+
+		 Note that the generator can be a lambda, or it could be a generator class that
+		 has a method "json_t* operator()() { ... }". In either case it will need to maintain
+		 its own state so that it will know what to return on each call.
+		 */
+		using node_generator_fn = function<node*(void)>;
+		using array_child_t = pair<string, node_generator_fn>;
+
+		/*!
+		 A JSON node is represented by a key/value pair mapping combined with an optional
+		 child generator. In the mapping values that appear to be numeric will not be
+		 quoted, all others will assumed to be strings and will be escaped and quoted.
+		 */
+		struct node {
+			map<string, string>				attributes;
+			mutable vector<array_child_t>	arrays;
+
+			/*!
+			 Convenience access for setting attributes.
+			 */
+			string& operator[](const string& key) {
+				return attributes[key];
+			}
+
+			/*!
+			 Reset the node to an empty one.
+			 */
+			void clear() noexcept {
+				attributes.clear();
+				arrays.clear();
+			}
+		};
+
+
+		// Don't call anything in this namespace manually.
+		struct _private {
+
+			// This is based on code found at
+			// https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+			static inline bool is_number(const string& s) {
+				return !s.empty() && find_if(s.begin(), s.end(), [](char c) { return !(isdigit(c) || c == '.'); }) == s.end();
+			}
+
+			// The following is based on code found at
+			// https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c/33799784#33799784
+			static string encodeJson(const string &s) {
+				// If it is a number we need to escapes or quotes.
+				if (is_number(s)) {
+					return s;
+				}
+
+				// Otherwise we must escape it and quote it.
+				ostringstream o;
+				o << '"';
+				for (auto c = s.cbegin(); c != s.cend(); c++) {
+					switch (*c) {
+						case '"': o << "\\\""; break;
+						case '\\': o << "\\\\"; break;
+						case '\b': o << "\\b"; break;
+						case '\f': o << "\\f"; break;
+						case '\n': o << "\\n"; break;
+						case '\r': o << "\\r"; break;
+						case '\t': o << "\\t"; break;
+						default:
+							if ('\x00' <= *c && *c <= '\x1f') {
+								o << "\\u"
+								<< std::hex << std::setw(4) << std::setfill('0') << (int)*c;
+							} else {
+								o << *c;
+							}
+					}
+				}
+				o << '"';
+				return o.str();
+			}
+
+			static ostream& indent(ostream& strm, int indentLevel, int extraSpaces = 0) {
+				for (auto i = 0; i < (indentLevel*4)+extraSpaces; ++i) {
+					strm << ' ';
+				}
+				return strm;
+			}
+
+			static ostream& write_with_indent(ostream& strm, const node& json, int indentLevel,
+											  bool needTrailingComma)
+			{
+				indent(strm, indentLevel);
+				strm << '{' << endl;
+
+				auto lastIt = --json.attributes.end();
+				for (auto it = json.attributes.begin(); it != json.attributes.end(); ++it) {
+					indent(strm, indentLevel, 2);
+					strm << '"' << it->first << "\": " << encodeJson(it->second);
+					if (it != lastIt || json.arrays.size() > 0) strm << ',';
+					strm << endl;
+				}
+
+				const auto last = --json.arrays.end();
+				for (auto it = json.arrays.begin(); it != json.arrays.end(); ++it) {
+					write_child_in_array(strm, indentLevel, *it, it == last);
+				}
+
+				indent(strm, indentLevel);
+				strm << '}';
+				if (needTrailingComma) strm << ',';
+				strm << endl;
+
+				return strm;
+			}
+
+			static ostream& write_child_in_array(ostream& strm, int indentLevel, array_child_t& child, bool isLastChild) {
+				indent(strm, indentLevel, 2);
+				strm << '"' << child.first << "\": [" << endl;
+
+				node* json = child.second();
+				while (json) {
+					node tmp = *json;
+					node* next = child.second();
+					write_with_indent(strm, tmp, indentLevel+1, (next != nullptr));
+					json = next;
+				}
+
+				indent(strm, indentLevel, 2);
+				strm << "]";
+				if (!isLastChild) strm << ',';
+				strm << endl;
+				return strm;
+			}
+		};
+
+
+
+		/*!
+		 Write a JSON object to a stream.
+		 @returns the stream
+		 @throws any exceptions that the stream writing may throw.
+		 */
+		inline ostream& write(ostream& strm, const node& json) {
+			return _private::write_with_indent(strm, json, 0, false);
+		}
+	}
+
+} }
+
 
 // MARK: State of the world
 
@@ -85,8 +261,9 @@ namespace {
 		string					timestamp;
 		fractional_seconds_t	durationOfTestSuite;
 		unsigned				numberOfErrors = 0;
-		unsigned				numberOfFailures= 0;
+		unsigned				numberOfFailedAssertions = 0;
 		unsigned				numberOfSkippedTests = 0;
+		unsigned				numberOfFailedTests = 0;
 
 		bool operator<(const TestSuiteWrapper& rhs) const noexcept {
 			return suite->name() < rhs.suite->name();
@@ -101,16 +278,20 @@ namespace {
 	static bool								isParallel = true;
 	static string							filter;
 	static string							xmlReportFilename;
+	static string							jsonReportFilename;
 
 	// Summary of test results.
 	struct TestResultSummary {
 		mutex					lock;
+		string					programName;
 		string 					nameOfTestRun;
 		string					nameOfHost;
+		string					timeOfTestRun;
 		fractional_seconds_t	durationOfTestRun;
 		unsigned				numberOfErrors = 0;
 		unsigned				numberOfFailures = 0;
 		unsigned				numberOfAssertions = 0;
+		unsigned				numberOfTests = 0;
 	};
 	static TestResultSummary reportSummary;
 }
@@ -190,8 +371,10 @@ namespace {
 		return newargv;
 	}
 
-	void printUsageMessage(const string& progName) {
-		cout << "usage: " << basename(progName) << " [options]" << R"(
+
+	// Print the usage message to the given stream.
+	void printUsageMessage(ostream& strm) {
+		strm << "usage: " << reportSummary.programName << " [options]" << R"(
 
 The following are the accepted command line options:
     -h/--help displays this usage message
@@ -200,7 +383,7 @@ The following are the accepted command line options:
         this option will also cause --no-parallel to be assumed.)
     -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
     ---xml=<filename> writes a JUnit test compatible XML to the given filename
-    --json=<filename> writes a Google test compatible JSON to the given filename
+    --json=<filename> writes a gUnit test compatible JSON to the given filename
     --no-parallel will force all tests to be run in the same thread (This is assumed if
         the --verbose option is specified.)
 
@@ -209,19 +392,17 @@ The display options essentially run in three modes.
 In the "quiet" mode (--quiet is specified) no output at all is written and the only
 indication of the test results is the return code. This is useful for inclusion in scripts
 where you only want a pass/fail result and do not care about the details. It is also
-assumed if you specify either --xml or --json so that everything written to the standard
-output device will be the XML or JSON reports. Unless --no-parallel is specified, the
-tests will be run in multiple threads.
+useful if you are outputting XML or JSON to the standard output device and don't want
+to have to separate them in your script.
 
 In the "normal" mode (neither --quiet nor --verbose is specified) the program will print a
 header line when the tests begin, then will print one of the following characters for each
 test suite, followed by a summary stating how many tests passed, failed, and skipped,
 finishing with details of all the failed tests:
     . - all tests in the suite ran without error or failure
-	S - one or more tests in the suite were skipped (due to use of the skip() method)
 	E - one or more of the tests in the suite caused an error condition
 	F - one or more of the tests in the suite failed an assertion
-Unless --no-parallel is specified, the tests will be run in multiple threads.
+	S - one or more tests in the suite were skipped (due to use of the skip() method)
 
 In the "verbose" mode (--verbose is specified) more details are written while the tests
 are run. In particular you will see a header line for each test suite and an individual
@@ -239,9 +420,12 @@ suite will be output. Note that in order for this output to make sense, specifyi
 will also imply --no-parallel.
 
 For --xml or --json you can specify "-" as the filename. In that case instead of writing
-to a file the report will be written to the standard output device. Unless you have also
-specified --quiet, the report will be preceeded by a line of all "=" characters to make
-it possible to find the end of the live output and the start of the report.
+to a file the report will be written to the standard output device. If you decide to write
+the reports to the standard output device, and you have not specified --quiet or you have
+asked for both XML and JSON, the reports will be preceeded by a line containing at least the
+text "==XML=REPORT==" and "==JSON=REPORT==" to help your scripts identify them in the
+output. If you only send one of them to the standard output device, and you have specified
+--quiet, then no such tag line will be output (hence the only output should be the report).
 
 Filtering can be used to limit the tests that are run without having to add skip()
 statements in your code. This is most useful when you are developing/debugging a particular
@@ -249,7 +433,7 @@ section and don't want to repeat all the other test until you have completed. It
 generally useful to specify --verbose when you are filtering, but that is not assumed.
 
 The return value, when all the tests are done, will be one of the following:
-    -1 if there was one or more error conditions raised,
+    -1 (255 on some systems) if there was one or more error conditions raised,
     0 if all tests completed with no errors or failures (although some may have skipped), or
 	>0 if some tests failed. The value will be the number of failures (i.e. the number of
         times that KSS_ASSERT failed) in all the test cases in all the test suites.
@@ -257,6 +441,16 @@ The return value, when all the tests are done, will be one of the following:
 		)";
 	}
 
+	// Obtain the required argument or print a usage message and exit if it does not exist.
+	string getArgument() {
+		if (!optarg) {
+			printUsageMessage(cerr);
+			exit(-1);
+		}
+		return string(optarg);
+	}
+
+	// Parse the command line and setup the global state of the world with the results.
 	bool parseCommandLine(int argc, const char* const* argv) {
 		if (argc > 0 && argv != nullptr) {
 			char** newargv = duplicateArgv(argc, argv);
@@ -266,7 +460,7 @@ The return value, when all the tests are done, will be one of the following:
 			while ((ch = getopt_long(argc, newargv, "hqvf:", commandLineOptions, nullptr)) != -1) {
 				switch (ch) {
 					case 'h':
-						printUsageMessage(argv[0]);
+						printUsageMessage(cout);
 						return false;
 					case 'q':
 						isQuiet = true;
@@ -278,18 +472,13 @@ The return value, when all the tests are done, will be one of the following:
 						isParallel = false;
 						break;
 					case 'f':
-						if (!optarg) {
-							printUsageMessage(argv[0]);
-							exit(-1);
-						}
-						filter = string(optarg);
+						filter = getArgument();
 						break;
 					case 'X':
-						if (!optarg) {
-							printUsageMessage(argv[0]);
-							exit(-1);
-						}
-						xmlReportFilename = string(optarg);
+						xmlReportFilename = getArgument();
+						break;
+					case 'J':
+						jsonReportFilename = getArgument();
 						break;
 				}
 			}
@@ -421,7 +610,8 @@ struct TestSuite::Impl {
 		// Update the counters.
 		currentTest = nullptr;
 		currentSuite->numberOfErrors += t.errors.size();
-		currentSuite->numberOfFailures += t.failures.size();
+		currentSuite->numberOfFailedAssertions += t.failures.size();
+		if (!t.failures.empty()) ++currentSuite->numberOfFailedTests;
 		if (t.skipped) ++currentSuite->numberOfSkippedTests;
 
 		{
@@ -429,6 +619,7 @@ struct TestSuite::Impl {
 			reportSummary.numberOfErrors += t.errors.size();
 			reportSummary.numberOfFailures += t.failures.size();
 			reportSummary.numberOfAssertions += t.assertions;
+			++reportSummary.numberOfTests;
 		}
 	}
 
@@ -642,7 +833,7 @@ namespace {
 			attrs["name"] = ts.suite->name();
 			attrs["tests"] = to_string(ts.suite->_implementation()->tests.size());
 			attrs["errors"] = to_string(ts.numberOfErrors);
-			attrs["failures"] = to_string(ts.numberOfFailures);
+			attrs["failures"] = to_string(ts.numberOfFailedAssertions);
 			attrs["hostname"] = reportSummary.nameOfHost;
 			attrs["id"] = to_string(id++);
 			attrs["skipped"] = to_string(ts.numberOfSkippedTests);
@@ -685,7 +876,7 @@ namespace {
 
 	void printXmlReport() {
 		if (xmlReportFilename == "-") {
-			if (!isQuiet) cout << "======================================" << endl;
+			if (!isQuiet || jsonReportFilename == "-") cout << "==XML=REPORT===================================" << endl;
 			writeXmlReportToStream(cout);
 		}
 		else {
@@ -696,12 +887,115 @@ namespace {
 		}
 	}
 
+
+	struct FailureJsonGenerator {
+		FailureJsonGenerator(const vector<string>& failures) : _failures(failures) {
+			_it = _failures.begin();
+		}
+		json::simple_writer::node* operator()() {
+			if (_it == _failures.end()) {
+				return nullptr;
+			}
+			else {
+				_n.clear();
+				_n["message"] = *_it;
+				++_it;
+				return &_n;
+			}
+		}
+	private:
+		const vector<string>&					_failures;
+		typename vector<string>::const_iterator	_it;
+		json::simple_writer::node				_n;
+	};
+
+	struct TestCaseJsonGenerator {
+		TestCaseJsonGenerator(const vector<TestCaseWrapper>& tests) : _tests(tests) {
+			_it = _tests.begin();
+		}
+		json::simple_writer::node* operator()() {
+			if (_it == _tests.end()) {
+				return nullptr;
+			}
+			else {
+				_n.clear();
+				_n["name"] = _it->name;
+				_n["status"] = (_it->skipped ? "NOTRUN" : "RUN");
+				_n["time"] = to_string(_it->durationOfTest.count());
+				_n["classname"] = (_it->owner ? demangle(*(_it->owner)) : string("none"));
+				if (!_it->failures.empty()) {
+					_n.arrays = { make_pair("failures", FailureJsonGenerator(_it->failures)) };
+				}
+				++_it;
+				return &_n;
+			}
+		}
+	private:
+		const vector<TestCaseWrapper>& 						_tests;
+		typename vector<TestCaseWrapper>::const_iterator	_it;
+		json::simple_writer::node							_n;
+	};
+
+	struct TestSuiteJsonGenerator {
+		TestSuiteJsonGenerator(const vector<TestSuiteWrapper>& suites) : _suites(suites) {
+			_it = _suites.begin();
+		}
+		json::simple_writer::node* operator()() {
+			if (_it == _suites.end()) {
+				return nullptr;
+			}
+			else {
+				_n.clear();
+				_n["name"] = _it->suite->name();
+				_n["tests"] = to_string(_it->suite->_implementation()->tests.size());
+				_n["failures"] = to_string(_it->numberOfFailedTests);
+				_n["errors"] = to_string(_it->numberOfErrors);
+				_n["time"] = to_string(_it->durationOfTestSuite.count());
+				_n.arrays = { make_pair("testsuite", TestCaseJsonGenerator(_it->suite->_implementation()->tests)) };
+				++_it;
+				return &_n;
+			}
+		}
+	private:
+		const vector<TestSuiteWrapper>&						_suites;
+		typename vector<TestSuiteWrapper>::const_iterator	_it;
+		json::simple_writer::node							_n;
+	};
+
+	void writeJsonReportToStream(ostream& strm) {
+		json::simple_writer::node n;
+		n["tests"] = to_string(reportSummary.numberOfTests);
+		n["failures"] = to_string(reportSummary.numberOfFailures);
+		n["errors"] = to_string(reportSummary.numberOfErrors);
+		n["time"] = to_string(reportSummary.durationOfTestRun.count());
+		n["timestamp"] = reportSummary.timeOfTestRun;
+		n["name"] = reportSummary.nameOfTestRun;
+		n.arrays = { make_pair("testsuites", TestSuiteJsonGenerator(testSuites)) };
+		json::simple_writer::write(strm, n);
+	}
+
+	void printJsonReport() {
+		if (jsonReportFilename == "-") {
+			if (!isQuiet || xmlReportFilename == "-") cout << "==JSON=REPORT==================================" << endl;
+			writeJsonReportToStream(cout);
+		}
+		else {
+			write_file(jsonReportFilename, [&](ofstream& strm) {
+				writeJsonReportToStream(strm);
+			});
+			if (!isQuiet) cout << "  Wrote JSON report to " << jsonReportFilename << endl;
+		}
+	}
+
 	void printTestRunSummary() {
 		if (!isQuiet) {
 			outputStandardSummary();
 		}
 		if (!xmlReportFilename.empty()) {
 			printXmlReport();
+		}
+		if (!jsonReportFilename.empty()) {
+			printJsonReport();
 		}
 	}
 
@@ -718,7 +1012,7 @@ namespace {
 					numberOfAssertions += t.assertions;
 				}
 
-				if (!w.numberOfErrors && !w.numberOfFailures) {
+				if (!w.numberOfErrors && !w.numberOfFailedAssertions) {
 					cout << "    PASSED all " << numberOfAssertions << " checks";
 				}
 				else {
@@ -731,8 +1025,8 @@ namespace {
 				if (w.numberOfErrors > 0) {
 					cout << ", " << w.numberOfErrors << (w.numberOfErrors == 1 ? " error" : " errors");
 				}
-				if (w.numberOfFailures > 0) {
-					cout << ", " << w.numberOfFailures << " FAILED";
+				if (w.numberOfFailedAssertions > 0) {
+					cout << ", " << w.numberOfFailedAssertions << " FAILED";
 				}
 				cout << "." << endl;
 
@@ -744,7 +1038,7 @@ namespace {
 						}
 					}
 				}
-				if (w.numberOfFailures > 0) {
+				if (w.numberOfFailedAssertions > 0) {
 					cout << "    Failures:" << endl;
 					for (const auto& t : impl->tests) {
 						for (const auto& f : t.failures) {
@@ -807,12 +1101,14 @@ namespace {
 namespace kss { namespace testing {
 
 	int run(const string& testRunName, int argc, const char *const *argv) {
+		reportSummary.programName = basename(argv[0]);
 		reportSummary.nameOfTestRun = testRunName;
 		reportSummary.nameOfHost = hostname();
 		if (parseCommandLine(argc, argv)) {
 			printTestRunHeader();
 			sort(testSuites.begin(), testSuites.end());
 
+			reportSummary.timeOfTestRun = now();
 			reportSummary.durationOfTestRun = time_of_execution([&]{
 				vector<future<bool>> futures;
 
