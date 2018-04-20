@@ -888,78 +888,59 @@ namespace {
 	}
 
 
-	struct FailureJsonGenerator {
-		FailureJsonGenerator(const vector<string>& failures) : _failures(failures) {
-			_it = _failures.begin();
-		}
+	template <class T>
+	struct AbstractJsonGenerator {
 		json::simple_writer::node* operator()() {
-			if (_it == _failures.end()) {
+			if (_it == _items.end()) {
 				return nullptr;
 			}
 			else {
 				_n.clear();
-				_n["message"] = *_it;
+				populate();
 				++_it;
 				return &_n;
 			}
 		}
-	private:
-		const vector<string>&					_failures;
-		typename vector<string>::const_iterator	_it;
-		json::simple_writer::node				_n;
+		virtual void populate() = 0;
+	protected:
+		AbstractJsonGenerator(const vector<T>& items) : _items(items) {
+			_it = _items.begin();
+		}
+		const vector<T>&					_items;
+		typename vector<T>::const_iterator	_it;
+		json::simple_writer::node			_n;
 	};
 
-	struct TestCaseJsonGenerator {
-		TestCaseJsonGenerator(const vector<TestCaseWrapper>& tests) : _tests(tests) {
-			_it = _tests.begin();
+	struct FailureJsonGenerator : public AbstractJsonGenerator<string>{
+		FailureJsonGenerator(const vector<string>& failures) : AbstractJsonGenerator(failures) {}
+		virtual void populate() override {
+			_n["message"] = *_it;
 		}
-		json::simple_writer::node* operator()() {
-			if (_it == _tests.end()) {
-				return nullptr;
-			}
-			else {
-				_n.clear();
-				_n["name"] = _it->name;
-				_n["status"] = (_it->skipped ? "NOTRUN" : "RUN");
-				_n["time"] = to_string(_it->durationOfTest.count());
-				_n["classname"] = (_it->owner ? demangle(*(_it->owner)) : string("none"));
-				if (!_it->failures.empty()) {
-					_n.arrays = { make_pair("failures", FailureJsonGenerator(_it->failures)) };
-				}
-				++_it;
-				return &_n;
-			}
-		}
-	private:
-		const vector<TestCaseWrapper>& 						_tests;
-		typename vector<TestCaseWrapper>::const_iterator	_it;
-		json::simple_writer::node							_n;
 	};
 
-	struct TestSuiteJsonGenerator {
-		TestSuiteJsonGenerator(const vector<TestSuiteWrapper>& suites) : _suites(suites) {
-			_it = _suites.begin();
-		}
-		json::simple_writer::node* operator()() {
-			if (_it == _suites.end()) {
-				return nullptr;
-			}
-			else {
-				_n.clear();
-				_n["name"] = _it->suite->name();
-				_n["tests"] = to_string(_it->suite->_implementation()->tests.size());
-				_n["failures"] = to_string(_it->numberOfFailedTests);
-				_n["errors"] = to_string(_it->numberOfErrors);
-				_n["time"] = to_string(_it->durationOfTestSuite.count());
-				_n.arrays = { make_pair("testsuite", TestCaseJsonGenerator(_it->suite->_implementation()->tests)) };
-				++_it;
-				return &_n;
+	struct TestCaseJsonGenerator : public AbstractJsonGenerator<TestCaseWrapper> {
+		TestCaseJsonGenerator(const vector<TestCaseWrapper>& tests) : AbstractJsonGenerator(tests) {}
+		virtual void populate() override {
+			_n["name"] = _it->name;
+			_n["status"] = (_it->skipped ? "NOTRUN" : "RUN");
+			_n["time"] = to_string(_it->durationOfTest.count());
+			_n["classname"] = (_it->owner ? demangle(*(_it->owner)) : string("none"));
+			if (!_it->failures.empty()) {
+				_n.arrays = { make_pair("failures", FailureJsonGenerator(_it->failures)) };
 			}
 		}
-	private:
-		const vector<TestSuiteWrapper>&						_suites;
-		typename vector<TestSuiteWrapper>::const_iterator	_it;
-		json::simple_writer::node							_n;
+	};
+
+	struct TestSuiteJsonGenerator : public AbstractJsonGenerator<TestSuiteWrapper> {
+		TestSuiteJsonGenerator(const vector<TestSuiteWrapper>& suites) : AbstractJsonGenerator(suites) {}
+		virtual void populate() override {
+			_n["name"] = _it->suite->name();
+			_n["tests"] = to_string(_it->suite->_implementation()->tests.size());
+			_n["failures"] = to_string(_it->numberOfFailedTests);
+			_n["errors"] = to_string(_it->numberOfErrors);
+			_n["time"] = to_string(_it->durationOfTestSuite.count());
+			_n.arrays = { make_pair("testsuite", TestCaseJsonGenerator(_it->suite->_implementation()->tests)) };
+		}
 	};
 
 	void writeJsonReportToStream(ostream& strm) {
