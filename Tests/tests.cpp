@@ -50,7 +50,6 @@ static TestSuite basicTests("Basic Tests", {
 
 static TestSuite ts2("Another TestSuite", {
 	make_pair("mytest", [](TestSuite& self) {
-		skip();
 		throw runtime_error("uncaught");
 	}),
 	make_pair("myTestWithError", [](TestSuite&) {

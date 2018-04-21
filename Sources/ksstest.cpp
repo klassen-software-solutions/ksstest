@@ -38,6 +38,159 @@
 using namespace std;
 using namespace kss::testing;
 
+
+// MARK: Simple XML streaming from kssutil
+
+namespace { namespace xml {
+
+	/*!
+	 This namespace provides methods for efficiently creating XML output. The requirements
+	 for this project were as follows:
+
+	 1. Single-file header-only implementation suitable for embedding into other projects.
+	 2. No dependancies other than a modern C++ compiler (i.e. no third-party libraries).
+	 3. Ability to stream XML data without having to have the entire thing in memory.
+
+	 The intention is not a full-grown XML package, but rather to be able to create XML
+	 output efficiently.
+	 */
+	namespace simple_writer {
+
+		using namespace std;
+
+		struct node;
+
+		/*!
+		 An XML child is represented by a node generator function. The function must return
+		 a node* with each call. The returned pointer must remain valid until the next call.
+		 When there are no more children to be produced, it should return nullptr. This
+		 design was chosen to allow the XML to be streamed without all being in memory at
+		 once.
+
+		 Note that the generator can be a lambda, or it could be a generator class that has
+		 a method "node* operator()() { ... }". In either case it will need to maintain
+		 its own state so that it will know what to return on each call.
+		 */
+		using node_generator_fn = function<node*(void)>;
+
+		/*!
+		 An XML node is represented by a key/value pair mapping (which become the attributes)
+		 combined with an optional child generator (which become the children).
+		 */
+		struct node {
+			string								name;
+			map<string, string>					attributes;
+			string								text;
+			mutable vector<node_generator_fn>	children;
+
+			/*!
+			 Convenience access for setting attributes.
+			 */
+			string& operator[](const string& key) {
+				return attributes[key];
+			}
+
+			/*!
+			 Reset the node to an empty one.
+			 */
+			void clear() noexcept {
+				name.clear();
+				attributes.clear();
+				text.clear();
+				children.clear();
+			}
+		};
+
+
+		// Don't call anything in this "namespace" manually.
+		struct _private {
+
+			static ostream& indent(ostream& strm, int indentLevel) {
+				for (auto i = 0; i < indentLevel; ++i) { strm << "  "; }
+				return strm;
+			}
+
+			// Based on code found at
+			// https://stackoverflow.com/questions/5665231/most-efficient-way-to-escape-xml-html-in-c-string
+			static string encode(const string& data, int indentLevel = -1) {
+				string buffer;
+				buffer.reserve(data.size());
+				for(size_t pos = 0; pos != data.size(); ++pos) {
+					switch(data[pos]) {
+						case '&':  buffer.append("&amp;");       break;
+						case '\"': buffer.append("&quot;");      break;
+						case '\'': buffer.append("&apos;");      break;
+						case '<':  buffer.append("&lt;");        break;
+						case '>':  buffer.append("&gt;");        break;
+						case '\n':
+							if (indentLevel > 0) {
+								buffer.append("\n");
+								while (indentLevel--) buffer.append("  ");
+							}
+							break;
+						default:   buffer.append(&data[pos], 1); break;
+					}
+				}
+				return buffer;
+			}
+
+			static ostream& write_with_indent(ostream& strm, const node& n, int indentLevel) {
+				assert(!n.name.empty());
+				assert(indentLevel >= 0);
+				assert(n.text.empty() || n.children.empty());
+
+				// Start the node.
+				const bool singleLine = (n.text.empty() && n.children.empty());
+				indent(strm, indentLevel);
+				strm << '<' << n.name;
+
+				// Write the attributes.
+				for (auto& attr : n.attributes) {
+					assert(!attr.first.empty());
+					assert(!attr.second.empty());
+					strm << ' ' << attr.first << "=\"" << encode(attr.second) << '"';
+				}
+				strm << (singleLine ? "/>" : ">") << endl;
+
+				if (!singleLine) {
+					// Write the contents.
+					if (!n.text.empty()) {
+						indent(strm, indentLevel+1);
+						strm << encode(n.text, indentLevel+1) << endl;
+					}
+
+					// Write the children.
+					for (auto fn : n.children) {
+						node* child = fn();
+						while (child) {
+							write_with_indent(strm, *child, indentLevel+1);
+							child = fn();
+						}
+					}
+
+					// End the node.
+					indent(strm, indentLevel);
+					strm << "</" << n.name << '>' << endl;
+				}
+
+				return strm;
+			}
+		};
+
+
+		/*!
+		 Write an XML object to a stream.
+		 @returns the stream
+		 @throws any exceptions that the stream writing may throw.
+		 */
+		inline ostream& write(ostream& strm, const node& root) {
+			strm << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+			return _private::write_with_indent(strm, root, 0);
+		}
+	}
+}}
+
+
 // MARK: Simple JSON streaming from kssutil.
 
 namespace { namespace json {
@@ -749,129 +902,92 @@ namespace {
 		}
 	}
 
-	using attributes_t = map<string, string>;
-
-	// Based on code found at
-	// https://stackoverflow.com/questions/5665231/most-efficient-way-to-escape-xml-html-in-c-string
-	void encodeXml(string& data) {
-		string buffer;
-		buffer.reserve(data.size());
-		for(size_t pos = 0; pos != data.size(); ++pos) {
-			switch(data[pos]) {
-				case '&':  buffer.append("&amp;");       break;
-				case '\"': buffer.append("&quot;");      break;
-				case '\'': buffer.append("&apos;");      break;
-				case '<':  buffer.append("&lt;");        break;
-				case '>':  buffer.append("&gt;");        break;
-				default:   buffer.append(&data[pos], 1); break;
+	template <class T, class Node>
+	struct AbstractGenerator {
+		Node* operator()() {
+			if (_it == _items.end()) {
+				return nullptr;
+			}
+			else {
+				_n.clear();
+				populate();
+				++_it;
+				return &_n;
 			}
 		}
-		data.swap(buffer);
-	}
-
-	void indent(ostream& strm, int sizeOfIndent) {
-		while (sizeOfIndent-- > 0) strm << ' ';
-	}
-
-	void startTag(ostream& strm, int indentLevel, const string& name, attributes_t& attrs) {
-		indent(strm, indentLevel*2);
-		strm << "<" << name;
-		if (attrs.empty()) {
-			strm << '>' << endl;
+		virtual void populate() = 0;
+	protected:
+		AbstractGenerator(const vector<T>& items) : _items(items) {
+			_it = _items.begin();
 		}
-		else {
-			for (auto attr : attrs) {
-				encodeXml(attr.second);
-				strm << ' ' << attr.first << "=\"" << attr.second << '"';
+		const vector<T>&					_items;
+		typename vector<T>::const_iterator	_it;
+		Node								_n;
+	};
+
+	struct FailureXmlGenerator : public AbstractGenerator<string, xml::simple_writer::node> {
+		FailureXmlGenerator(const vector<string>& failures) : AbstractGenerator(failures) {}
+		virtual void populate() override {
+			_n.name = "failure";
+			_n["message"] = *_it;
+		}
+	};
+
+	struct ErrorXmlGenerator : public AbstractGenerator<TestError, xml::simple_writer::node> {
+		ErrorXmlGenerator(const vector<TestError>& errors) : AbstractGenerator(errors) {}
+		virtual void populate() override {
+			_n.name = "error";
+			_n["message"] = _it->errorMessage;
+			if (!_it->errorType.empty()) _n["type"] = _it->errorType;
+		}
+	};
+
+	struct TestCaseXmlGenerator : public AbstractGenerator<TestCaseWrapper, xml::simple_writer::node> {
+		TestCaseXmlGenerator(const vector<TestCaseWrapper>& testCases) : AbstractGenerator(testCases) {}
+		virtual void populate() override {
+			_n.name = "testcase";
+			_n["name"] = _it->name;
+			_n["assertions"] = to_string(_it->assertions);
+			_n["classname"] = (_it->owner ? demangle(*(_it->owner)) : string("none"));
+			_n["time"] = to_string(_it->durationOfTest.count());
+			if (!_it->errors.empty() || !_it->failures.empty()) {
+				_n.children = {
+					ErrorXmlGenerator(_it->errors),
+					FailureXmlGenerator(_it->failures)
+				};
 			}
-			strm << '>' << endl;
 		}
-	}
+	};
 
-	void endTag(ostream& strm, int indentLevel, const string& name) {
-		indent(strm, indentLevel*2);
-		strm << "</" << name << ">" << endl;
-	}
-
-	void tag(ostream& strm, int indentLevel, const string& name, attributes_t& attrs) {
-		indent(strm, indentLevel*2);
-		strm << "<" << name;
-		if (attrs.empty()) {
-			strm << "/>" << endl;
+	struct TestSuiteXmlGenerator : public AbstractGenerator<TestSuiteWrapper, xml::simple_writer::node> {
+		TestSuiteXmlGenerator(const vector<TestSuiteWrapper>& suites) : AbstractGenerator(suites) {}
+		virtual void populate() override {
+			_n.name = "testsuite";
+			_n["name"] = _it->suite->name();
+			_n["tests"] = to_string(_it->suite->_implementation()->tests.size());
+			_n["errors"] = to_string(_it->numberOfErrors);
+			_n["failures"] = to_string(_it->numberOfFailedAssertions);
+			_n["hostname"] = reportSummary.nameOfHost;
+			_n["id"] = to_string(id++);
+			_n["skipped"] = to_string(_it->numberOfSkippedTests);
+			_n["time"] = to_string(_it->durationOfTestSuite.count());
+			_n["timestamp"] = _it->timestamp;
+			_n.children = { TestCaseXmlGenerator(_it->suite->_implementation()->tests) };
 		}
-		else {
-			for (auto attr : attrs) {
-				encodeXml(attr.second);
-				strm << ' ' << attr.first << "=\"" << attr.second << '"';
-			}
-			strm << "/>" << endl;
-		}
-	}
-
-	void tag(ostream& strm, int indentLevel, const string& name) {
-		attributes_t attrs;
-		tag(strm, indentLevel, name, attrs);
-	}
-
+	private:
+		int id = 0;
+	};
 
 	void writeXmlReportToStream(ostream& strm) {
-		strm << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-
-		// testsuites
-		attributes_t attrs;
-		attrs["errors"] = to_string(reportSummary.numberOfErrors);
-		attrs["failures"] = to_string(reportSummary.numberOfFailures);
-		attrs["name"] = reportSummary.nameOfTestRun;
-		attrs["tests"] = to_string(reportSummary.numberOfAssertions - reportSummary.numberOfFailures);
-		attrs["time"] = to_string(reportSummary.durationOfTestRun.count());
-		startTag(strm, 0, "testsuites", attrs);
-
-		// testsuite
-		int id = 0;
-		for (const auto& ts : testSuites) {
-			attrs.clear();
-			attrs["name"] = ts.suite->name();
-			attrs["tests"] = to_string(ts.suite->_implementation()->tests.size());
-			attrs["errors"] = to_string(ts.numberOfErrors);
-			attrs["failures"] = to_string(ts.numberOfFailedAssertions);
-			attrs["hostname"] = reportSummary.nameOfHost;
-			attrs["id"] = to_string(id++);
-			attrs["skipped"] = to_string(ts.numberOfSkippedTests);
-			attrs["time"] = to_string(ts.durationOfTestSuite.count());
-			attrs["timestamp"] = ts.timestamp;
-			startTag(strm, 1, "testsuite", attrs);
-
-			// testcase
-			for (const auto& tc : ts.suite->_implementation()->tests) {
-				attrs.clear();
-				attrs["name"] = tc.name;
-				attrs["assertions"] = to_string(tc.assertions);
-				attrs["classname"] = (tc.owner ? demangle(*tc.owner) : string("none"));
-				attrs["time"] = to_string(tc.durationOfTest.count());
-				startTag(strm, 2, "testcase", attrs);
-
-				if (tc.skipped) tag(strm, 3, "skipped");
-
-				for (const auto& err : tc.errors) {
-					attrs.clear();
-					attrs["message"] = err.errorMessage;
-					if (!err.errorType.empty()) attrs["type"] = err.errorType;
-					tag(strm, 3, "error", attrs);
-				}
-
-				for (const auto& failure : tc.failures) {
-					attrs.clear();
-					attrs["message"] = failure;
-					tag(strm, 3, "failure", attrs);
-				}
-
-				endTag(strm, 2, "testcase");
-			}
-
-			endTag(strm, 1, "testsuite");
-		}
-
-		endTag(strm, 0, "testsuites");
+		xml::simple_writer::node root;
+		root.name = "testsuites";
+		root["errors"] = to_string(reportSummary.numberOfErrors);
+		root["failures"] = to_string(reportSummary.numberOfFailures);
+		root["name"] = reportSummary.nameOfTestRun;
+		root["tests"] = to_string(reportSummary.numberOfAssertions - reportSummary.numberOfFailures);
+		root["time"] = to_string(reportSummary.durationOfTestRun.count());
+		root.children = { TestSuiteXmlGenerator(testSuites) };
+		xml::simple_writer::write(strm, root);
 	}
 
 	void printXmlReport() {
@@ -888,38 +1004,15 @@ namespace {
 	}
 
 
-	template <class T>
-	struct AbstractJsonGenerator {
-		json::simple_writer::node* operator()() {
-			if (_it == _items.end()) {
-				return nullptr;
-			}
-			else {
-				_n.clear();
-				populate();
-				++_it;
-				return &_n;
-			}
-		}
-		virtual void populate() = 0;
-	protected:
-		AbstractJsonGenerator(const vector<T>& items) : _items(items) {
-			_it = _items.begin();
-		}
-		const vector<T>&					_items;
-		typename vector<T>::const_iterator	_it;
-		json::simple_writer::node			_n;
-	};
-
-	struct FailureJsonGenerator : public AbstractJsonGenerator<string>{
-		FailureJsonGenerator(const vector<string>& failures) : AbstractJsonGenerator(failures) {}
+	struct FailureJsonGenerator : public AbstractGenerator<string, json::simple_writer::node>{
+		FailureJsonGenerator(const vector<string>& failures) : AbstractGenerator(failures) {}
 		virtual void populate() override {
 			_n["message"] = *_it;
 		}
 	};
 
-	struct TestCaseJsonGenerator : public AbstractJsonGenerator<TestCaseWrapper> {
-		TestCaseJsonGenerator(const vector<TestCaseWrapper>& tests) : AbstractJsonGenerator(tests) {}
+	struct TestCaseJsonGenerator : public AbstractGenerator<TestCaseWrapper, json::simple_writer::node> {
+		TestCaseJsonGenerator(const vector<TestCaseWrapper>& tests) : AbstractGenerator(tests) {}
 		virtual void populate() override {
 			_n["name"] = _it->name;
 			_n["status"] = (_it->skipped ? "NOTRUN" : "RUN");
@@ -931,8 +1024,8 @@ namespace {
 		}
 	};
 
-	struct TestSuiteJsonGenerator : public AbstractJsonGenerator<TestSuiteWrapper> {
-		TestSuiteJsonGenerator(const vector<TestSuiteWrapper>& suites) : AbstractJsonGenerator(suites) {}
+	struct TestSuiteJsonGenerator : public AbstractGenerator<TestSuiteWrapper, json::simple_writer::node> {
+		TestSuiteJsonGenerator(const vector<TestSuiteWrapper>& suites) : AbstractGenerator(suites) {}
 		virtual void populate() override {
 			_n["name"] = _it->suite->name();
 			_n["tests"] = to_string(_it->suite->_implementation()->tests.size());
