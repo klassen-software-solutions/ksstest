@@ -58,18 +58,24 @@ namespace kss {
 
 		// The following are intended to be used inside KSS_ASSERT in order to make the
 		// test intent clearer. They are especially useful if your test contains multiple
-		// lines of code. For single line tests you may want to jsut use the assertion
+		// lines of code. For single line tests you may want to just use the assertion
 		// on its own. For example,
+		//
 		//  KSS_ASSERT(isEqualTo(3, []{ return i; }));
+		//
 		// isn't really any clearer than
+		//
 		//  KSS_ASSERT(i == 3);
+		//
 		// However,
+		//
 		//  KSS_ASSERT(isEqualTo(3, []{
 		//     auto val = obtainAValueFromSomewhere();
 		//     doSomeWorkOnTheValue(&val);
 		//     return val;
 		//  }));
-		// is much clearer than trying to do it all in the assertions expr argument.
+		//
+		// is much clearer than trying to do it all in the KSS_ASSERT expr argument.
 
 		/*!
 		 Returns true if the lambda returns true.
@@ -136,9 +142,8 @@ namespace kss {
 		/*!
 		 Returns true if the lambda causes terminate to be called.
 		 example:
-		 inline void cannot_throw() noexcept { throw std::runtime_error("hi"); }
-
-		 KSS_ASSERT(terminates([]{ cannot_throw() }));
+		   inline void cannot_throw() noexcept { throw std::runtime_error("hi"); }
+		   KSS_ASSERT(terminates([]{ cannot_throw() }));
 		 */
 		bool terminates(std::function<void(void)> fn);
 
@@ -159,7 +164,7 @@ namespace kss {
 			 Construct a test suite. All the test cases are lambdas that conform to test_case_fn.
 			 They are all included in the constructor and a static version of each TestSuite
 			 must be declared. (It is the static declaration that will register the test
-			 suite with the internal infrastructure.
+			 suite with the internal infrastructure.)
 
 			 Note that the lambdas are not run in the construction. They will be run at
 			 the appropriate time when kss::testing::run is called.
@@ -195,14 +200,16 @@ namespace kss {
 		// MARK: TestSuite Modifiers
 
 		// Most of the time you will likely use TestSuite "as is" just providing the
-		// tests in the constructor. However, you can modify it's default behaviour by
+		// tests in the constructor. However, you can modify its default behaviour by
 		// creating a subclass that inherits from one or more of the following interfaces.
+		// Note that after defining the subclass you still must create a static instance
+		// of the class in order to register its tests to be run.
 
 		/*!
 		 Extend your TestSuite with these interfaces if you wish it to call code before
-		 (or after) all all the tests in your TestSuite. It is acceptable to perform
-		 tests in these methods - they will be treated as a test case called "BeforeAll"
-		 and "AfterAll", respectively.
+		 (or after) all the tests in your TestSuite. It is acceptable to perform tests
+		 in these methods - they will be treated as a test case called "BeforeAll" and
+		 "AfterAll", respectively.
 		 */
 		class HasBeforeAll {
 		public:

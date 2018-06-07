@@ -39,7 +39,7 @@ using namespace std;
 using namespace kss::testing;
 
 
-// MARK: Simple XML streaming from kssutil
+// MARK: Simple XML streaming "borrowed" from kssutil
 
 namespace { namespace xml {
 
@@ -51,7 +51,7 @@ namespace { namespace xml {
 	 2. No dependancies other than a modern C++ compiler (i.e. no third-party libraries).
 	 3. Ability to stream XML data without having to have the entire thing in memory.
 
-	 The intention is not a full-grown XML package, but rather to be able to create XML
+	 The intention is not a full-grown XML package, but just to be able to create XML
 	 output efficiently.
 	 */
 	namespace simple_writer {
@@ -191,7 +191,7 @@ namespace { namespace xml {
 }}
 
 
-// MARK: Simple JSON streaming from kssutil.
+// MARK: Simple JSON streaming "borrowed" from kssutil.
 
 namespace { namespace json {
 
@@ -266,7 +266,7 @@ namespace { namespace json {
 			// The following is based on code found at
 			// https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c/33799784#33799784
 			static string encodeJson(const string &s) {
-				// If it is a number we need to escapes or quotes.
+				// If it is a number we need no escapes or quotes.
 				if (is_number(s)) {
 					return s;
 				}

@@ -26,16 +26,15 @@ static TestSuite basicTests("Basic Tests", {
 		KSS_ASSERT(true);
 		KSS_ASSERT(doesNotThrowException([]{
 			assert(0 == 0);
-			throw runtime_error("hi");
 		}));
 	}),
 	make_pair("test2", [](TestSuite& self){
+		skip();
 		KSS_ASSERT(false);
 	}),
 	make_pair("test3", my_test),
 	make_pair("testTerminate", [](TestSuite&){
 		KSS_ASSERT(terminates([]{ should_call_terminate(); }));
-		KSS_ASSERT(terminates([]{ }));
 	}),
 	make_pair("testAssertionTypes", [](TestSuite&){
 		KSS_ASSERT(isTrue([]{ return true; }));
@@ -48,8 +47,9 @@ static TestSuite basicTests("Basic Tests", {
 });
 
 
-static TestSuite ts2("Another TestSuite", {
+static TestSuite ts2("TestSuite with Failures", {
 	make_pair("mytest", [](TestSuite& self) {
+		skip();
 		throw runtime_error("uncaught");
 	}),
 	make_pair("myTestWithError", [](TestSuite&) {
@@ -57,6 +57,7 @@ static TestSuite ts2("Another TestSuite", {
 		throw runtime_error("uncaught");
 	}),
 	make_pair("myTestWithFailure", [](TestSuite&) {
+		skip();
 		KSS_ASSERT(false);
 	})
 });
