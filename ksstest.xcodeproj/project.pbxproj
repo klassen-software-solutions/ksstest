@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA7548D620C9BBCE006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D420C9BBCE006581EA /* version.cpp */; };
+		AA7548D720C9BBCE006581EA /* version.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AA7548D520C9BBCE006581EA /* version.hpp */; };
+		AA7548D920C9C112006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D820C9C112006581EA /* version.cpp */; };
 		AAD09DED2074572F00B527FB /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DEB2074572F00B527FB /* ksstest.cpp */; };
-		AAD09DEE2074572F00B527FB /* ksstest.h in Headers */ = {isa = PBXBuildFile; fileRef = AAD09DEC2074572F00B527FB /* ksstest.h */; };
+		AAD09DEE2074572F00B527FB /* ksstest.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AAD09DEC2074572F00B527FB /* ksstest.hpp */; };
 		AAD09DFC2075C9A900B527FB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DFB2075C9A900B527FB /* main.cpp */; };
 		AAD09DFF2075CA6500B527FB /* libksstest.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA40F121F3CAAF2005D181B /* libksstest.dylib */; };
 		AAD09E012075CAE800B527FB /* tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09E002075CAE800B527FB /* tests.cpp */; };
@@ -39,13 +42,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA7548D020C98866006581EA /* BuildSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem; sourceTree = "<group>"; };
+		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
+		AA7548D520C9BBCE006581EA /* version.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = version.hpp; sourceTree = "<group>"; };
+		AA7548D820C9C112006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
+		AA7548DC20C9C5E0006581EA /* configure */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = configure; sourceTree = "<group>"; };
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		AAA40F221F3CED7E005D181B /* ksstest-old.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "ksstest-old.cpp"; sourceTree = "<group>"; };
-		AAA40F231F3CED7E005D181B /* ksstest-old.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ksstest-old.h"; sourceTree = "<group>"; };
 		AAD09DE220730A1600B527FB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AAD09DE320730DDA00B527FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AAD09DEB2074572F00B527FB /* ksstest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
-		AAD09DEC2074572F00B527FB /* ksstest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksstest.h; sourceTree = "<group>"; };
+		AAD09DEC2074572F00B527FB /* ksstest.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ksstest.hpp; sourceTree = "<group>"; };
 		AAD09DF32075C94200B527FB /* unittest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = unittest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAD09DFB2075C9A900B527FB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AAD09E002075CAE800B527FB /* tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tests.cpp; sourceTree = "<group>"; };
@@ -82,8 +89,11 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
+				AA7548DC20C9C5E0006581EA /* configure */,
 				AAD09DE320730DDA00B527FB /* README.md */,
 				AAD09DE220730A1600B527FB /* LICENSE */,
+				AA7548D320C999A1006581EA /* Makefile */,
+				AA7548D020C98866006581EA /* BuildSystem */,
 				AAA40F191F3CAC04005D181B /* Sources */,
 				AAD09DFA2075C98700B527FB /* Tests */,
 				AAA40F131F3CAAF2005D181B /* Products */,
@@ -103,10 +113,10 @@
 		AAA40F191F3CAC04005D181B /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				AAA40F221F3CED7E005D181B /* ksstest-old.cpp */,
-				AAA40F231F3CED7E005D181B /* ksstest-old.h */,
 				AAD09DEB2074572F00B527FB /* ksstest.cpp */,
-				AAD09DEC2074572F00B527FB /* ksstest.h */,
+				AAD09DEC2074572F00B527FB /* ksstest.hpp */,
+				AA7548D420C9BBCE006581EA /* version.cpp */,
+				AA7548D520C9BBCE006581EA /* version.hpp */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -118,6 +128,7 @@
 				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AAD09E022079A2A800B527FB /* before_after_all.cpp */,
 				AAD09E042079ADA600B527FB /* before_after_each.cpp */,
+				AA7548D820C9C112006581EA /* version.cpp */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -129,7 +140,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAD09DEE2074572F00B527FB /* ksstest.h in Headers */,
+				AAD09DEE2074572F00B527FB /* ksstest.hpp in Headers */,
+				AA7548D720C9BBCE006581EA /* version.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +152,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AAA40F161F3CAAF2005D181B /* Build configuration list for PBXNativeTarget "ksstest" */;
 			buildPhases = (
+				AA7548DB20C9C424006581EA /* Preparation */,
 				AAA40F0E1F3CAAF2005D181B /* Sources */,
 				AAA40F0F1F3CAAF2005D181B /* Frameworks */,
 				AAA40F101F3CAAF2005D181B /* Headers */,
@@ -209,11 +222,29 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AA7548DB20C9C424006581EA /* Preparation */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = Preparation;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make prep";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		AAA40F0E1F3CAAF2005D181B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA7548D620C9BBCE006581EA /* version.cpp in Sources */,
 				AAD09DED2074572F00B527FB /* ksstest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -223,6 +254,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AAD09DFC2075C9A900B527FB /* main.cpp in Sources */,
+				AA7548D920C9C112006581EA /* version.cpp in Sources */,
 				AAD09E012075CAE800B527FB /* tests.cpp in Sources */,
 				AAD09E052079ADA600B527FB /* before_after_each.cpp in Sources */,
 				AAD09E032079A2A800B527FB /* before_after_all.cpp in Sources */,
@@ -377,8 +409,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Sources";
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/.build/Darwin-x86_64/include";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-Wno-exceptions",
@@ -395,8 +426,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Sources";
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/.build/Darwin-x86_64/include";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-Wno-exceptions",

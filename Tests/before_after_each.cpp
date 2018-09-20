@@ -6,11 +6,11 @@
 //  Copyright © 2018 Klassen Software Solutions. All rights reserved.
 //
 
-#include <ksstest.h>
+#include <kss/test/all.h>
 #include <iostream>
 
 using namespace std;
-using namespace kss::testing;
+using namespace kss::test;
 
 namespace {
 	class BeforeEachSuite : public TestSuite, public HasBeforeEach, public HasAfterAll {

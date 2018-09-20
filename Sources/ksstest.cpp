@@ -9,7 +9,7 @@
 // without restriction or requirement, other than you cannot hinder anyone else from doing
 // the same.
 
-#include "ksstest.h"
+#include "ksstest.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -36,7 +36,7 @@
 #include <sys/wait.h>
 
 using namespace std;
-using namespace kss::testing;
+using namespace kss::test;
 
 
 // MARK: Simple XML streaming "borrowed" from kssutil
@@ -1172,7 +1172,7 @@ namespace {
 }
 
 
-namespace kss { namespace testing {
+namespace kss { namespace test {
 
 	int run(const string& testRunName, int argc, const char *const *argv) {
 		reportSummary.programName = basename(argv[0]);
@@ -1219,7 +1219,7 @@ namespace kss { namespace testing {
 
 // MARK: Assertions
 
-namespace kss { namespace testing {
+namespace kss { namespace test {
 
 	bool doesNotThrowException(function<void(void)> fn) {
 		bool caughtSomething = false;
@@ -1307,7 +1307,7 @@ const string& TestSuite::name() const noexcept {
 
 // MARK: _private Implementation
 
-namespace kss { namespace testing { namespace _private {
+namespace kss { namespace test { namespace _private {
 
 	void _success(void) noexcept {
 		++currentTest->assertions;

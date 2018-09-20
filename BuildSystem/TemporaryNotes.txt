@@ -1,0 +1,52 @@
+Build system
+
+Project requirements:
+
+- no outside tools needed beyound a Bourne shell and a gnu compatible make.
+- autotools-like results but without autotools
+   ./configure (optional)
+   make
+   make check
+   sudo make install
+- convension based handling - no dealing with manual file lists
+- ability to build multiple architectures in the same space and at the same time
+- auto generation of versions
+
+Build system convensions:
+
+- source files may end in .c (will be compiled as C) or .cpp/.cc/.cxx (will be compiled as C++)
+- header files may end in .h (could be C or C++) or .hpp/.hh/.hxx (should be C++)
+- source and header files should be placed in "Sources" directory
+- test files, including test infrastructure, should be placed in "Tests" directory
+
+Applications
+
+- if Sources/main.cpp exists the package will build an executable.
+- the testing code will have all files in Sources included in the test application, except
+  for the following:
+  - main.cpp
+  - any source file that begins with an underscore
+  - any header file that begins with an underscore
+- header files in the application can be accessed in the tests using
+  #include <Sources/file.h>
+- executable name will be same as base directory name but converted to lowercase, plus
+  the version
+
+
+Libraries
+
+- if Sources/main.cpp does not exist, a library will be built
+- libraries are always shared libraries
+- the testing code will only have the public API available
+- the library API is available via the same path as if the library were installed
+  #include <kss/test/all.h>
+- library name will be same as base directory name, converted to lowercase, plus the
+  version, with the appropriate prefix and suffix, for example
+   libksstest.1.2.3.dylib (or .so if appropriate)
+
+Other Testing Notes
+
+- make check always runs tests built in debug mode (may change in the future)
+
+
+

@@ -9,8 +9,8 @@
 // without restriction or requirement, other than you cannot hinder anyone else from doing
 // the same.
 
-#ifndef ksstest_h
-#define ksstest_h
+#ifndef ksstest_ksstest_h
+#define ksstest_ksstest_h
 
 #include <functional>
 #include <initializer_list>
@@ -19,7 +19,7 @@
 #include <utility>
 
 namespace kss {
-	namespace testing {
+	namespace test {
 
 		// MARK: Running
 

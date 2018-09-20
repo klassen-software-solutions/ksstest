@@ -6,17 +6,23 @@
 //  Copyright © 2018 Klassen Software Solutions. All rights reserved.
 //
 
-#include <ksstest.h>
+#include <kss/test/all.h>
 #include <cassert>
 #include <stdexcept>
 
 using namespace std;
-using namespace kss::testing;
+using namespace kss::test;
 
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexceptions"
 
 static void should_call_terminate() noexcept {
 	throw runtime_error("hi");
 }
+
+#pragma clang diagnostic pop
+
 
 static void my_test(TestSuite& self) {
 }

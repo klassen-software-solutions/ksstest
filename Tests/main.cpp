@@ -9,17 +9,8 @@
 // without restriction or requirement, other than you cannot hinder anyone else from doing
 // the same.
 
-#include <ksstest.h>
-#include <iostream>
-
-using namespace std;
+#include <kss/test/all.h>
 
 int main(int argc, char* argv[]) {
-	try {
-		return kss::testing::run("KSSTest", argc, argv);
-	}
-	catch (const exception& e) {
-		cerr << e.what() << endl;
-		return -1;
-	}
+    return kss::test::run("KSSTest", argc, argv);
 }

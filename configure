@@ -1,0 +1,9 @@
+#!/bin/sh
+
+#  configure.sh
+#  ksstest
+#
+#  Created by Steven W. Klassen on 2018-06-07.
+#  Copyright © 2018 Klassen Software Solutions. All rights reserved.
+
+echo "At present configure does nothing."
