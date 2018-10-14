@@ -37,7 +37,7 @@ add_target_share()
 {
     targetDir=$1
     echo "Target directory (prefix)... $targetDir"
-    echo "PREFIX=$targetDir" >> config.defs
+    echo "TARGETDIR=$targetDir" >> config.defs
     if [ -f $targetDir/share/config.site ]; then
         echo "-include $targetDir/share/config.site" >> config.defs
     fi
@@ -52,7 +52,7 @@ display_usage()
     echo "    --prefix=PREFIX  change the install target to PREFIX (default /usr/local)"
     echo ""
     echo "  You can also configure the system by putting items in a local file called"
-    echo "  'config.local'. For example a line 'PREFIX=/opt/local' would be equivalent"
+    echo "  'config.local'. For example a line 'TARGETDIR=/opt/local' would be equivalent"
     echo "  to calling ./configure --prefix=/opt/local."
     echo ""
 }

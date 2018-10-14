@@ -94,9 +94,10 @@ C_SRCS := $(wildcard Sources/*.c)
 CPP_SRCS := $(wildcard Sources/*.cpp)
 SRCS := $(C_SRCS) $(CPP_SRCS)
 SRCS := $(filter-out Sources/main.cpp, $(SRCS))
-HDRS := $(wildcard Sources/*.h)
-HDRS := $(filter-out Sources/_*.h, $(HDRS))
+HDRS := $(wildcard Sources/*.h) $(wildcard Sources/*.hpp)
 HDRS := $(filter-out Sources/all.h, $(HDRS))
+INSTALLHDRS := $(HDRS) Sources/all.h
+INSTALLHDRS := $(filter-out $(wildcard Sources/_*), $(INSTALLHDRS))
 OBJS := $(patsubst Sources/%.cpp,$(BUILDDIR)/%.o,$(CPP_SRCS)) $(patsubst Sources/%.c,$(BUILDDIR)/%.o,$(C_SRCS))
 
 PREPS := Sources/_version_internal.h Sources/all.h $(HEADERDIR)
@@ -149,7 +150,7 @@ ifneq ($(wildcard Sources/main.cpp),)
 endif
 TESTSRCS := $(filter-out Sources/main.cpp, $(TESTSRCS))
 TESTOBJS := $(patsubst Tests/%.cpp,$(TESTDIR)/%.o,$(TESTSRCS))
-TESTHDRS := $(wildcard Tests/*.h)
+TESTHDRS := $(wildcard Tests/*.h) $(wildcard Tests/*.hpp)
 
 check: library $(TESTPATH)
 ifneq ($(wildcard $(EXEPATH)),)
@@ -168,7 +169,19 @@ $(TESTDIR)/%.o: Tests/%.cpp $(TESTHDRS)
 
 
 # Perform the install.
-install:
+install: $(TARGETDIR)/include/$(PREFIX) $(TARGETDIR)/lib
+	-rm -rf $(TARGETDIR)/include/$(PREFIX)/$(PACKAGEBASENAME)
+	-mkdir -p $(TARGETDIR)/include/$(PREFIX)/$(PACKAGEBASENAME)
+	cp $(INSTALLHDRS) $(TARGETDIR)/include/$(PREFIX)/$(PACKAGEBASENAME)
+	chmod 644 $(TARGETDIR)/include/$(PREFIX)/$(PACKAGEBASENAME)/*
+	cp $(LIBPATH) $(TARGETDIR)/lib
+	(cd $(TARGETDIR)/lib ; rm -f $(LIBFILELINK) ; ln -s $(LIBFILE) $(LIBFILELINK))
+
+$(TARGETDIR)/include/$(PREFIX):
+	-mkdir -p $@
+
+$(TARGETDIR)/lib:
+	-mkdir -p $@
 
 # Clean the build.
 clean:
