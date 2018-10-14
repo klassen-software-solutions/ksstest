@@ -3,4 +3,6 @@ project.xcworkspace
 REVISION
 Sources/_version_internal.h
 Sources/all.h
+config.defs
+config.local
 
