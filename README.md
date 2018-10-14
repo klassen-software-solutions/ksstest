@@ -33,6 +33,8 @@ has really gone away.
 Of course this does not mean that this library cannot be used to test C-only libraries. It still can. But the tests
 themselves must be written in C++.
 
+If you really do need a C-only library, you can still use V4 found on the branch `release_4.2`.
+
 
 ## License
 
