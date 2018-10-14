@@ -58,6 +58,7 @@
 		AAD09E002075CAE800B527FB /* tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tests.cpp; sourceTree = "<group>"; };
 		AAD09E022079A2A800B527FB /* before_after_all.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = before_after_all.cpp; sourceTree = "<group>"; };
 		AAD09E042079ADA600B527FB /* before_after_each.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = before_after_each.cpp; sourceTree = "<group>"; };
+		AAD1E61D2173F52800B80601 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				AA7548DC20C9C5E0006581EA /* configure */,
+				AAD1E61D2173F52800B80601 /* Doxyfile */,
 				AAD09DE320730DDA00B527FB /* README.md */,
 				AAD09DE220730A1600B527FB /* LICENSE */,
 				AA7548D320C999A1006581EA /* Makefile */,
