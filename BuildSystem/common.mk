@@ -7,7 +7,7 @@ PACKAGEBASENAME := $(shell echo $(PACKAGEBASENAME) | sed 's/^$(PREFIX)//')
 BUILDSYSTEMDIR := $(PROJECTDIR)/BuildSystem
 VERSION := $(shell $(BUILDSYSTEMDIR)/revision.sh)
 VERSIONMACRO := $(shell echo $(PREFIX)$(PACKAGEBASENAME) | tr '[:lower:]' '[:upper:]')_VERSION
-PREFIX := /usr/local
+TARGETDIR := /usr/local
 
 OS := $(shell uname -s)
 ARCH := $(OS)-$(shell uname -m)
@@ -75,7 +75,7 @@ library: $(LIBPATH)
 hello:
 	@echo "Hello from $(PACKAGEBASENAME)"
 	@echo "  PROJECTDIR=$(PROJECTDIR)"
-	@echo "  PREFIX=$(PREFIX)"
+	@echo "  TARGETDIR=$(TARGETDIR)"
 	@echo "  VERSION=$(VERSION)"
 	@echo "  HEADERDIR=$(HEADERDIR)"
 	@echo "  LIBNAME=$(LIBNAME)"

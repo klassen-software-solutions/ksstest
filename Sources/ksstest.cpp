@@ -591,7 +591,7 @@ The return value, when all the tests are done, will be one of the following:
 	>0 if some tests failed. The value will be the number of failures (i.e. the number of
         times that KSS_ASSERT failed) in all the test cases in all the test suites.
 
-		)";
+		)" << endl;
 	}
 
 	// Obtain the required argument or print a usage message and exit if it does not exist.
