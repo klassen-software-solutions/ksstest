@@ -1,8 +1,8 @@
 .build
 project.xcworkspace
 REVISION
+Sources/_license_internal.h
 Sources/_version_internal.h
 Sources/all.h
 config.defs
 config.local
-

@@ -100,7 +100,7 @@ INSTALLHDRS := $(HDRS) Sources/all.h
 INSTALLHDRS := $(filter-out $(wildcard Sources/_*), $(INSTALLHDRS))
 OBJS := $(patsubst Sources/%.cpp,$(BUILDDIR)/%.o,$(CPP_SRCS)) $(patsubst Sources/%.c,$(BUILDDIR)/%.o,$(C_SRCS))
 
-PREPS := Sources/_version_internal.h Sources/all.h $(HEADERDIR)
+PREPS := Sources/_version_internal.h Sources/_license_internal.h Sources/all.h $(HEADERDIR)
 
 prep: $(PREPS)
 
@@ -122,14 +122,20 @@ $(LIBDIR):
 
 Sources/_version_internal.h: REVISION
 	echo "Rebuild $@"
-	@echo "#ifndef $(PREFIX)$(PACKAGEBASENAME)__version_internal_h" > $@
-	@echo "#define $(PREFIX)$(PACKAGEBASENAME)__version_internal_h" >> $@
+	@echo "/* This file is auto-generated and should not be edited. */" > $@
+	@echo "namespace {" >> $@
+	@echo "    constexpr const char* versionText = \"$(VERSION)\";" >> $@
+	@echo "}" >> $@
 	@echo "" >> $@
-	@echo "/* This file is auto-generated and should not be edited. */" >> $@
-	@echo "" >> $@
-	@echo "#define $(VERSIONMACRO) \"$(VERSION)"\" >> $@
-	@echo "" >> $@
-	@echo "#endif" >> $@
+
+Sources/_license_internal.h: LICENSE
+	echo "Rebuild $@"
+	@echo "/* This file is auto-generated and should not be edited. */" > $@
+	@echo "namespace {" >> $@
+	@echo "    constexpr const char* licenseText = R\"TXT(" >> $@
+	cat LICENSE >> $@
+	@echo ")TXT\";" >> $@
+	@echo "}" >> $@
 	@echo "" >> $@
 
 Sources/all.h: $(HDRS)
@@ -185,7 +191,8 @@ $(TARGETDIR)/lib:
 
 # Clean the build.
 clean:
-	rm -rf $(BUILDDIR) REVISION Sources/_version_internal.h Sources/all.h
+	rm -rf $(BUILDDIR) REVISION Sources/_version_internal.h \
+		Sources/_license_internal.h Sources/all.h
 
 cleanall: clean
 	rm -rf .build config.defs config.target.defs

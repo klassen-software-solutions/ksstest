@@ -7,10 +7,15 @@
 //
 
 #include "version.hpp"
+#include "_license_internal.h"
 #include "_version_internal.h"
 
 using namespace std;
 
 string kss::test::version() noexcept {
-    return KSSTEST_VERSION;
+    return versionText;
+}
+
+string kss::test::license() noexcept {
+    return licenseText;
 }

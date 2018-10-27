@@ -20,6 +20,10 @@ namespace kss {
          */
         std::string version() noexcept;
 
+        /*!
+         Returns the text of the software license.
+         */
+        std::string license() noexcept;
     }
 }
 
