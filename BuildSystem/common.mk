@@ -49,7 +49,7 @@ LDFLAGS := $(LDFLAGS) -L$(LIBDIR)
 CFLAGS := $(CFLAGS) -I$(BUILDDIR)/include
 CXXFLAGS := $(CXXFLAGS) -I$(BUILDDIR)/include -std=c++14 -Wno-unknown-pragmas
 
-.phony: build library install check clean cleanall directory-checks hello prep
+.PHONY: build library install check clean cleanall directory-checks hello prep docs help
 
 LIBNAME := $(PREFIX)$(PACKAGEBASENAME)
 LIBFILE := lib$(LIBNAME)$(SOEXT)
@@ -69,6 +69,11 @@ build: library
 
 library: $(LIBPATH)
 
+
+# Use "make help" to give some instructions on how the build system works.
+
+help:
+	@cat BuildSystem/makefile_help.txt
 
 # Use "make hello" to test that the names are what you would expect.
 
@@ -173,6 +178,11 @@ $(TESTDIR):
 $(TESTDIR)/%.o: Tests/%.cpp $(TESTHDRS)
 	$(CXX) -c $< $(CXXFLAGS) -I. -o $@
 
+
+# Build the documentation.
+docs:
+	-rm -rf docs
+	doxygen Doxyfile
 
 # Perform the install.
 install: $(TARGETDIR)/include/$(PREFIX) $(TARGETDIR)/lib
