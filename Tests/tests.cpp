@@ -16,11 +16,16 @@ using namespace kss::test;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexceptions"
+#pragma clang diagnostic ignored "-Wunknown-warning-option"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wterminate"
 
 static void should_call_terminate() noexcept {
 	throw runtime_error("hi");
 }
 
+#pragma GCC diagnostic pop
 #pragma clang diagnostic pop
 
 
