@@ -110,7 +110,7 @@ MAKE TARGETS
 check       - Builds and runs the tests.
 clean       - Cleans out the compiled and auto-generated items.
 cleanall    - Also cleans the complete .build directory and all files created
-              by running ./configure.
+              by running './configure' or 'make docs'.
 docs        - Builds the documentation and places it in the docs directory.
 hello       - Displays some of the configuration settings. This is most useful
               when you are overriding some of the settings as it can display

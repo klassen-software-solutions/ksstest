@@ -205,4 +205,4 @@ clean:
 		Sources/_license_internal.h Sources/all.h
 
 cleanall: clean
-	rm -rf .build config.defs config.target.defs
+	rm -rf .build config.defs config.target.defs docs

@@ -1,5 +1,6 @@
 .build
 docs
+docs.zip
 config.defs
 config.local
 project.xcworkspace
