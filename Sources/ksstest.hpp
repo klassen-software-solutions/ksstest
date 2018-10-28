@@ -9,8 +9,8 @@
 // without restriction or requirement, other than you cannot hinder anyone else from doing
 // the same.
 
-#ifndef ksstest_ksstest_h
-#define ksstest_ksstest_h
+#ifndef ksstest_ksstest_hpp
+#define ksstest_ksstest_hpp
 
 #include <functional>
 #include <initializer_list>
