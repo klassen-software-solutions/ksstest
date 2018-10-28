@@ -203,22 +203,26 @@ In addition, code should follow our coding standards as described below:
 
 ### General Coding Principles
 
-1. Be very familiar with [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines].
+1. Be very familiar with [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines).
     If you choose to write code that breaks one of these, be prepared to justify your decision.
-2. Favour reliability and readability over strict formatting guidelines. If you use item 2 to break a 
+2. Favour reliability and readability over strict formatting guidelines, but if choose to break a 
     formatting guideline, be prepared to justify your decision.
-4. Follow the C++14 standard. (We won't switch to C++17 until 2020.)
-5. Don't work on the master branch - create your own suitably named branch to work on.
+3. Follow the C++14 standard. (We won't switch to C++17 until 2020.)
+4. Don't work on the master branch - create your own suitably named branch to work on.
 6. Don't merge your branch into master - create a suitable pull request so we have an opportunity to review your work first.
-7. Write unit tests that cover your code. The code must pass the unit tests before your pull request will be accepted.
+6. Write unit tests that cover your code. The code must pass the unit tests before your pull request will be accepted.
+7. Eliminate all compiler warnings. If you absolutely cannot eliminate a warning, then suppress it
+    using the apprpriate #pragma, but be prepared to justify your decision.
 
 ### General Code Formatting
 
 #### Header files
 
-* C++ header files should use the extention '.hpp'.
-* C header files should user the extention '.h'.
+* C++ header files should use the extention '.hpp' and be all lower case.
+* C header files should user the extention '.h' and be all lower case.
 * C/C++ mixed header files should use '.hpp' and must have appropriate '#if defined __cplusplus' statements.
+* Header files do not have to be limited to a single class. But everthing in them should be
+  reasonably related.
 * Names of headers files that are for compiling only (i.e. that do not need to be installed with the library) should start with an underscore.
 * Header files must be protected using an '#ifdef' of the form 'ksstest_<filenamebase>_hpp'.
 * Keep implementation details out of the header except for very simple classes and structures. Make use of the [PIMPL Pattern](https://en.cppreference.com/w/cpp/language/pimpl) when suitable.
@@ -227,13 +231,25 @@ In addition, code should follow our coding standards as described below:
 
 #### Source files
 
+* C++ source files should use the extension '.cpp', be all lower case, and should match their '.hpp'.
+* C source files should use the extension '.c', be all lower case, and should match their '.h'.
 * Indent using 4 spaces (no tabs except where required) at the usual locations.
-* Keep lines to no more than 95 characters in length.
-* Keep methods and other blocks to no more than 30 lines in length.
+* Keep lines to no more than 95 characters in length. (It should be possible to view two source
+  files side by side using a 12pt font on a reasonably sized monitor. Note: We are not saying you
+  need to use a 12pt font - but assume that the code reviewers are.)
+* Keep methods and other blocks to no more than 50 lines in length. (It should be possible to
+  view an entire block on a reasonable laptop screen.)
 * Prefer the use of anonymous namespaces over the "static" keyword.
 * When including header files group them in the order of "standard c++ libraries" (e.g. #include <string>), "standard OS libraries" (e.g. #include <sys/wait.h>), "third party libraries", "local includes".
 * Local includes should use the form '#include "filename"'. All other includes should use the form '#include <filename>'.
 * Use 'using namespace ...' and 'use something_t = ...' to reduce the need to explicitly refer to namespaces in your code.
+* Don't repeat the "documentation" comments that are already in the header file in the source file.
+  (Our Doxygen configuration ignores the source files and only examines the header files on the
+  assumption that the API does not depend on the implementation.)
+* Don't comment the obvious. It should be possible to determine what your code does by 
+  examining the code itself. Comments should primarily be used to describe why you chose a
+  specific implementation, or why you are breaking from a standard, or just to make the code more 
+  navigable in the IDEs (e.g. MARK: and TODO:).
 
 #### Naming convensions
 
