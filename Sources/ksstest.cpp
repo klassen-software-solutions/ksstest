@@ -7,8 +7,6 @@
 //  Licensing follows the MIT License.
 //
 
-#include "ksstest.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -32,6 +30,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
+
+#include "ksstest.hpp"
 
 using namespace std;
 using namespace kss::test;
@@ -76,9 +76,9 @@ namespace { namespace xml {
          combined with an optional child generator (which become the children).
          */
         struct node {
-            string                                name;
-            map<string, string>                    attributes;
-            string                                text;
+            string                               name;
+            map<string, string>                  attributes;
+            string                               text;
             mutable vector<node_generator_fn>    children;
 
             /*!
@@ -232,7 +232,7 @@ namespace { namespace json {
          quoted, all others will assumed to be strings and will be escaped and quoted.
          */
         struct node {
-            map<string, string>                attributes;
+            map<string, string>              attributes;
             mutable vector<array_child_t>    arrays;
 
             /*!
@@ -376,7 +376,7 @@ namespace {
     }
 
     struct TestError {
-        string errorType;            // The name of the exception.
+        string errorType;           // The name of the exception.
         string errorMessage;        // The what() of the exception.
 
         operator string() const {
@@ -392,12 +392,12 @@ namespace {
     };
 
     struct TestCaseWrapper {
-        string                    name;
-        TestSuite*                owner = nullptr;
-        TestSuite::test_case_fn    fn;
+        string                  name;
+        TestSuite*              owner = nullptr;
+        TestSuite::test_case_fn fn;
         unsigned int            assertions = 0;
-        vector<TestError>        errors;
-        vector<string>            failures;
+        vector<TestError>       errors;
+        vector<string>          failures;
         bool                    skipped = false;
         fractional_seconds_t    durationOfTest;
 
@@ -407,9 +407,9 @@ namespace {
     };
 
     struct TestSuiteWrapper {
-        TestSuite*                 suite;
+        TestSuite*              suite;
         bool                    filteredOut = false;
-        string                    timestamp;
+        string                  timestamp;
         fractional_seconds_t    durationOfTestSuite;
         unsigned                numberOfErrors = 0;
         unsigned                numberOfFailedAssertions = 0;
@@ -421,14 +421,14 @@ namespace {
         }
     };
 
-    thread_local static TestSuiteWrapper*    currentSuite = nullptr;
+    thread_local static TestSuiteWrapper*   currentSuite = nullptr;
     thread_local static TestCaseWrapper*    currentTest = nullptr;
-    static bool                                isQuiet = false;
-    static bool                                isVerbose = false;
-    static bool                                isParallel = true;
-    static string                            filter;
-    static string                            xmlReportFilename;
-    static string                            jsonReportFilename;
+    static bool                             isQuiet = false;
+    static bool                             isVerbose = false;
+    static bool                             isParallel = true;
+    static string                           filter;
+    static string                           xmlReportFilename;
+    static string                           jsonReportFilename;
 
     // Lazy instantiation of the testSuites singleton.
     vector<TestSuiteWrapper>* testSuites() {
@@ -440,11 +440,11 @@ namespace {
 
     // Summary of test results.
     struct TestResultSummary {
-        mutex                    lock;
-        string                    programName;
-        string                     nameOfTestRun;
-        string                    nameOfHost;
-        string                    timeOfTestRun;
+        mutex                   lock;
+        string                  programName;
+        string                  nameOfTestRun;
+        string                  nameOfHost;
+        string                  timeOfTestRun;
         fractional_seconds_t    durationOfTestRun;
         unsigned                numberOfErrors = 0;
         unsigned                numberOfFailures = 0;
@@ -709,8 +709,8 @@ namespace {
 
 struct TestSuite::Impl {
     TestSuite*                parent = nullptr;
-    string                     name;
-    vector<TestCaseWrapper>    tests;
+    string                    name;
+    vector<TestCaseWrapper>   tests;
 
     // Add the BeforeAll and AfterAll "tests" if appropriate.
     void addBeforeAndAfterAll() {

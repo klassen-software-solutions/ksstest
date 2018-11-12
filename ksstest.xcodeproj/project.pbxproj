@@ -42,6 +42,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA16FA3E218A51CE0059E8DB /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
+		AA16FA46218A65930059E8DB /* intro.dox */ = {isa = PBXFileReference; lastKnownFileType = text; path = intro.dox; sourceTree = "<group>"; };
 		AA7548D020C98866006581EA /* BuildSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem; sourceTree = "<group>"; };
 		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
@@ -80,6 +82,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA16FA3D218A51AC0059E8DB /* Top Level */ = {
+			isa = PBXGroup;
+			children = (
+				AA7548DC20C9C5E0006581EA /* configure */,
+				AAD1E61D2173F52800B80601 /* Doxyfile */,
+				AAD09DE220730A1600B527FB /* LICENSE */,
+				AA16FA3E218A51CE0059E8DB /* logo.png */,
+				AA7548D320C999A1006581EA /* Makefile */,
+				AAD09DE320730DDA00B527FB /* README.md */,
+			);
+			name = "Top Level";
+			sourceTree = "<group>";
+		};
 		AA6684572038A95200819C6A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -90,11 +105,7 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
-				AA7548DC20C9C5E0006581EA /* configure */,
-				AAD1E61D2173F52800B80601 /* Doxyfile */,
-				AAD09DE320730DDA00B527FB /* README.md */,
-				AAD09DE220730A1600B527FB /* LICENSE */,
-				AA7548D320C999A1006581EA /* Makefile */,
+				AA16FA3D218A51AC0059E8DB /* Top Level */,
 				AA7548D020C98866006581EA /* BuildSystem */,
 				AAA40F191F3CAC04005D181B /* Sources */,
 				AAD09DFA2075C98700B527FB /* Tests */,
@@ -115,6 +126,7 @@
 		AAA40F191F3CAC04005D181B /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				AA16FA46218A65930059E8DB /* intro.dox */,
 				AAD09DEB2074572F00B527FB /* ksstest.cpp */,
 				AAD09DEC2074572F00B527FB /* ksstest.hpp */,
 				AA7548D420C9BBCE006581EA /* version.cpp */,
