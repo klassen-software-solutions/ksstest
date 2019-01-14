@@ -534,70 +534,70 @@ namespace {
     void printUsageMessage(ostream& strm) {
         strm << "usage: " << reportSummary.programName << " [options]" << R"(
 
-        The following are the accepted command line options:
-        -h/--help displays this usage message
-        -q/--quiet suppress test result output (useful if all you want is the return value)
-        -v/--verbose displays more information (-q will override this if present. Specifying
-                                                this option will also cause --no-parallel to be assumed.)
-        -f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
-        ---xml=<filename> writes a JUnit test compatible XML to the given filename
-        --json=<filename> writes a gUnit test compatible JSON to the given filename
-        --no-parallel will force all tests to be run in the same thread (This is assumed if
-                                                                         the --verbose option is specified.)
+The following are the accepted command line options:
+-h/--help displays this usage message
+-q/--quiet suppress test result output (useful if all you want is the return value)
+-v/--verbose displays more information (-q will override this if present. Specifying
+    this option will also cause --no-parallel to be assumed.)
+-f <testprefix>/--filter=<testprefix> only run tests that start with the prefix
+---xml=<filename> writes a JUnit test compatible XML to the given filename
+--json=<filename> writes a gUnit test compatible JSON to the given filename
+--no-parallel will force all tests to be run in the same thread (This is assumed if
+    the --verbose option is specified.)
 
-        The display options essentially run in three modes.
+The display options essentially run in three modes.
 
-        In the "quiet" mode (--quiet is specified) no output at all is written and the only
-        indication of the test results is the return code. This is useful for inclusion in scripts
-            where you only want a pass/fail result and do not care about the details. It is also
-                useful if you are outputting XML or JSON to the standard output device and don't want
-                    to have to separate them in your script.
+In the "quiet" mode (--quiet is specified) no output at all is written and the only
+indication of the test results is the return code. This is useful for inclusion in scripts
+where you only want a pass/fail result and do not care about the details. It is also
+useful if you are outputting XML or JSON to the standard output device and don't want
+to have to separate them in your script.
 
-                    In the "normal" mode (neither --quiet nor --verbose is specified) the program will print a
-                    header line when the tests begin, then will print one of the following characters for each
-                        test suite, followed by a summary stating how many tests passed, failed, and skipped,
-                        finishing with details of all the failed tests:
-                        . - all tests in the suite ran without error or failure
-                        E - one or more of the tests in the suite caused an error condition
-                        F - one or more of the tests in the suite failed an assertion
-                        S - one or more tests in the suite were skipped (due to use of the skip() method)
+In the "normal" mode (neither --quiet nor --verbose is specified) the program will print a
+header line when the tests begin, then will print one of the following characters for each
+test suite, followed by a summary stating how many tests passed, failed, and skipped,
+finishing with details of all the failed tests:
+    . - all tests in the suite ran without error or failure
+    E - one or more of the tests in the suite caused an error condition
+    F - one or more of the tests in the suite failed an assertion
+    S - one or more tests in the suite were skipped (due to use of the skip() method)
 
-                        In the "verbose" mode (--verbose is specified) more details are written while the tests
-                            are run. In particular you will see a header line for each test suite and an individual
-                                line for each test case within the test suite. For each test case you will see one of
-                                    the following characters for each test (i.e. for each call to KSS_ASSERT):
-                                        . - the assertion passed
-                                        + - 10 consecutive assertions passed
-                                        * - 100 consecutive assertions passed
-                                        S - skip() was called (it will be the last report on the line)
-                                        E - an error occurred while running the test (it will be the last report on the line)
-                                            F - the test failed
-                                            If a tests has errors or failures, they will be written out on the following lines. When
-                                            the output for all the test cases in a suite is completed, a summary line for the test
-                                                suite will be output. Note that in order for this output to make sense, specifying --verbose
-                                                    will also imply --no-parallel.
+In the "verbose" mode (--verbose is specified) more details are written while the tests
+are run. In particular you will see a header line for each test suite and an individual
+line for each test case within the test suite. For each test case you will see one of
+the following characters for each test (i.e. for each call to KSS_ASSERT):
+    . - the assertion passed
+    + - 10 consecutive assertions passed
+    * - 100 consecutive assertions passed
+    S - skip() was called (it will be the last report on the line)
+    E - an error occurred while running the test (it will be the last report on the line)
+    F - the test failed
+If a tests has errors or failures, they will be written out on the following lines. When
+the output for all the test cases in a suite is completed, a summary line for the test
+suite will be output. Note that in order for this output to make sense, specifying --verbose
+will also imply --no-parallel.
 
-                                                    For --xml or --json you can specify "-" as the filename. In that case instead of writing
-                                                    to a file the report will be written to the standard output device. If you decide to write
-                                                    the reports to the standard output device, and you have not specified --quiet or you have
-                                                    asked for both XML and JSON, the reports will be preceeded by a line containing at least the
-                                                        text "==XML=REPORT==" and "==JSON=REPORT==" to help your scripts identify them in the
-                                                        output. If you only send one of them to the standard output device, and you have specified
-                                                        --quiet, then no such tag line will be output (hence the only output should be the report).
+For --xml or --json you can specify "-" as the filename. In that case instead of writing
+to a file the report will be written to the standard output device. If you decide to write
+the reports to the standard output device, and you have not specified --quiet or you have
+asked for both XML and JSON, the reports will be preceeded by a line containing at least the
+text "==XML=REPORT==" and "==JSON=REPORT==" to help your scripts identify them in the
+output. If you only send one of them to the standard output device, and you have specified
+--quiet, then no such tag line will be output (hence the only output should be the report).
 
-                                                        Filtering can be used to limit the tests that are run without having to add skip()
-                                                        statements in your code. This is most useful when you are developing/debugging a particular
-                                                        section and don't want to repeat all the other test until you have completed. It is also
-                                                        generally useful to specify --verbose when you are filtering, but that is not assumed.
+Filtering can be used to limit the tests that are run without having to add skip()
+statements in your code. This is most useful when you are developing/debugging a particular
+section and don't want to repeat all the other test until you have completed. It is also
+generally useful to specify --verbose when you are filtering, but that is not assumed.
 
-                                                        The return value, when all the tests are done, will be one of the following:
-                                                        -1 (255 on some systems) if there was one or more error conditions raised,
-                                                            0 if all tests completed with no errors or failures (although some may have skipped), or
-                                                                >0 if some tests failed. The value will be the number of failures (i.e. the number of
-                                                                                                                                   times that KSS_ASSERT failed) in all the test cases in all the test suites.
+The return value, when all the tests are done, will be one of the following:
+-1 (255 on some systems) if there was one or more error conditions raised,
+0 if all tests completed with no errors or failures (although some may have skipped), or
+>0 if some tests failed. The value will be the number of failures (i.e. the number of
+times that KSS_ASSERT failed) in all the test cases in all the test suites.
 
-                                                                    )" << endl;
-                                                                    }
+    )" << endl;
+    }
 
     // Obtain the required argument or print a usage message and exit if it does not exist.
     string getArgument() {
