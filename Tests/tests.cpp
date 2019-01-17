@@ -4,10 +4,12 @@
 //
 //  Created by Steven W. Klassen on 2018-04-04.
 //  Copyright © 2018 Klassen Software Solutions. All rights reserved.
+//  Licensing follows the MIT License.
 //
 
 #include <kss/test/all.h>
 #include <cassert>
+#include <cerrno>
 #include <stdexcept>
 
 using namespace std;
@@ -54,7 +56,19 @@ static TestSuite basicTests("Basic Tests", {
 		KSS_ASSERT(isNotEqualTo<int>(10, []{ return 11; }));
 		KSS_ASSERT(throwsException<runtime_error>([]{ throw runtime_error("hi"); }));
 		KSS_ASSERT(doesNotThrowException([]{}));
-	})
+        KSS_ASSERT(throwsSystemErrorWithCategory(system_category(), [] {
+            throw system_error(EIO, system_category());
+        }));
+        KSS_ASSERT(throwsSystemErrorWithCode(error_code(EIO, system_category()), [] {
+            throw system_error(EIO, system_category());
+        }));
+	}),
+    make_pair("quiet and verbose", [](TestSuite&) {
+        // No meaningfull test since we don't know what mode we are running. But at least
+        // we can check that the API doesn't change.
+        if (isVerbose()) { KSS_ASSERT(!isQuiet()); }
+        if (isQuiet()) { KSS_ASSERT(!isVerbose()); }
+    })
 });
 
 
