@@ -10,6 +10,7 @@
 #ifndef ksstest_ksstest_hpp
 #define ksstest_ksstest_hpp
 
+#include <chrono>
 #include <exception>
 #include <functional>
 #include <initializer_list>
@@ -19,6 +20,14 @@
 #include <utility>
 
 namespace kss { namespace test {
+
+    namespace _private {
+        void _success(void) noexcept;
+        void _failure(const char* expr, const char* filename, unsigned int line) noexcept;
+        
+        bool completesWithinSec(const std::chrono::duration<double>& dInSec,
+                                const std::function<void()>&fn);
+    }
 
     // MARK: Running
 
@@ -207,6 +216,22 @@ namespace kss { namespace test {
     bool doesNotThrowException(const std::function<void()>& fn);
 
     /*!
+     Returns true if the lambda completes successfuly within the given duration. Note
+     that Duration must be a valid std::duration.
+
+     example:
+     @code
+     KSS_ASSERT(completesWithin(2ms, []{ doSomeWork(); }));
+     @endcode
+     */
+    template <class Duration>
+    inline bool completesWithin(const Duration& d, const std::function<void()>& fn) {
+        using std::chrono::duration_cast;
+        using std::chrono::duration;
+        return _private::completesWithinSec(duration_cast<duration<double>>(d), fn);
+    }
+
+    /*!
      Returns true if the lambda causes terminate to be called.
      example:
      @code
@@ -358,12 +383,6 @@ namespace kss { namespace test {
     class MustNotBeParallel {
     };
 
-    namespace _private {
-        // This namespace defines items that need to be publically available for syntactical
-        // reasons but should be treated as private and never called manually.
-        void _success(void) noexcept;
-        void _failure(const char* expr, const char* filename, unsigned int line) noexcept;
-    }
 }}
 
 #endif /* ksstest_hpp */

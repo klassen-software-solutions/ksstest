@@ -62,6 +62,7 @@ static TestSuite basicTests("Basic Tests", {
         KSS_ASSERT(throwsSystemErrorWithCode(error_code(EIO, system_category()), [] {
             throw system_error(EIO, system_category());
         }));
+        KSS_ASSERT(completesWithin(1s, []{}));
 	}),
     make_pair("quiet and verbose", [](TestSuite&) {
         // No meaningfull test since we don't know what mode we are running. But at least

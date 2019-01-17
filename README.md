@@ -169,6 +169,7 @@ KSS_ASSERT(isTrue([]{
 * isNotEqualTo<T>: determines if a block of code does not return a specific value
 * throwsException<E>: determines if a block of code throws a specific exception
 * doesNotThrowException: determines if a block of code throws no exceptions
+* completesWithin<Duration>: determines if a block of code completes within a given time
 * terminates: determines if a block of code causes terminate() to be called
 
 ### Calling KSS_ASSERT Within a Thread
