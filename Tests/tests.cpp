@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cerrno>
 #include <stdexcept>
+#include <kss/test/all.h>
 
 using namespace std;
 using namespace kss::test;

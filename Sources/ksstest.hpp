@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <typeinfo>
 #include <utility>
 
 namespace kss { namespace test {
@@ -24,10 +25,18 @@ namespace kss { namespace test {
     namespace _private {
         void _success(void) noexcept;
         void _failure(const char* expr, const char* filename, unsigned int line) noexcept;
-        
+        void setFailureDetails(const std::string& d);
+        std::string demangleName(const char* mangledName);
+
         bool completesWithinSec(const std::chrono::duration<double>& dInSec,
                                 const std::function<void()>&fn);
-    }
+
+        template <typename T>
+        inline std::string demangle(const T& t) {
+            return demangleName(typeid(t).name());
+        }
+
+      }
 
     // MARK: Running
 
@@ -131,7 +140,13 @@ namespace kss { namespace test {
      */
     template <class T>
     bool isEqualTo(const T& a, const std::function<T()>& fn) {
-        return (fn() == a);
+        const auto res = fn();
+        bool ret = (res == a);
+        if (!ret) {
+            _private::setFailureDetails("expected (" + std::to_string(a)
+                                        + "), actual was (" + std::to_string(res) + ")");
+        }
+        return ret;
     }
 
     /*!
@@ -167,8 +182,9 @@ namespace kss { namespace test {
         catch (const Exception&) {
             caughtCorrectException = true;
         }
-        catch (const std::exception&) {
-        }
+        catch (const std::exception& e) {
+            _private::setFailureDetails("actually threw " + _private::demangle(e));
+         }
         return caughtCorrectException;
     }
 
