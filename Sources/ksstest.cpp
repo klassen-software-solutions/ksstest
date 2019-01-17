@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cstdlib>
 #include <ctime>
 #include <exception>
@@ -34,6 +33,7 @@
 #include "ksstest.hpp"
 
 using namespace std;
+using namespace std::chrono;
 using namespace kss::test;
 
 
@@ -366,7 +366,6 @@ namespace { namespace json {
 // MARK: State of the world
 
 namespace {
-    typedef chrono::duration<double, std::chrono::seconds::period> fractional_seconds_t;
 
     // Name demangling.
     template <typename T>
@@ -399,7 +398,7 @@ namespace {
         vector<TestError>       errors;
         vector<string>          failures;
         bool                    skipped = false;
-        fractional_seconds_t    durationOfTest;
+        duration<double>        durationOfTest;
 
         bool operator<(const TestCaseWrapper& rhs) const noexcept {
             return name < rhs.name;
@@ -407,14 +406,14 @@ namespace {
     };
 
     struct TestSuiteWrapper {
-        TestSuite*              suite;
-        bool                    filteredOut = false;
-        string                  timestamp;
-        fractional_seconds_t    durationOfTestSuite;
-        unsigned                numberOfErrors = 0;
-        unsigned                numberOfFailedAssertions = 0;
-        unsigned                numberOfSkippedTests = 0;
-        unsigned                numberOfFailedTests = 0;
+        TestSuite*          suite;
+        bool                filteredOut = false;
+        string              timestamp;
+        duration<double>    durationOfTestSuite;
+        unsigned            numberOfErrors = 0;
+        unsigned            numberOfFailedAssertions = 0;
+        unsigned            numberOfSkippedTests = 0;
+        unsigned            numberOfFailedTests = 0;
 
         bool operator<(const TestSuiteWrapper& rhs) const noexcept {
             return suite->name() < rhs.suite->name();
@@ -440,16 +439,16 @@ namespace {
 
     // Summary of test results.
     struct TestResultSummary {
-        mutex                   lock;
-        string                  programName;
-        string                  nameOfTestRun;
-        string                  nameOfHost;
-        string                  timeOfTestRun;
-        fractional_seconds_t    durationOfTestRun;
-        unsigned                numberOfErrors = 0;
-        unsigned                numberOfFailures = 0;
-        unsigned                numberOfAssertions = 0;
-        unsigned                numberOfTests = 0;
+        mutex               lock;
+        string              programName;
+        string              nameOfTestRun;
+        string              nameOfHost;
+        string              timeOfTestRun;
+        duration<double>    durationOfTestRun;
+        unsigned            numberOfErrors = 0;
+        unsigned            numberOfFailures = 0;
+        unsigned            numberOfAssertions = 0;
+        unsigned            numberOfTests = 0;
     };
     static TestResultSummary reportSummary;
 }
@@ -679,10 +678,10 @@ times that KSS_ASSERT failed) in all the test cases in all the test suites.
     }
 
     // Return the time that fn took to run.
-    fractional_seconds_t time_of_execution(function<void ()> fn) {
-        const auto start = chrono::high_resolution_clock::now();
+    duration<double> timeOfExecution(function<void ()> fn) {
+        const auto start = steady_clock::now();
         fn();
-        return chrono::duration_cast<fractional_seconds_t>(chrono::high_resolution_clock::now() - start);
+        return duration_cast<duration<double>>(steady_clock::now() - start);
     }
 
     // Return the current timestamp in ISO 8601 format.
@@ -734,7 +733,7 @@ struct TestSuite::Impl {
     void runTestCase(TestCaseWrapper& t) {
         currentTest = &t;
         try {
-            t.durationOfTest = time_of_execution([&]{
+            t.durationOfTest = timeOfExecution([&]{
                 if (auto* hbe = as<HasBeforeEach>(parent)) {
                     if (t.name != "BeforeAll" && t.name != "AfterAll") hbe->beforeEach();
                 }
@@ -1176,7 +1175,7 @@ namespace {
         impl->addBeforeAndAfterAll();
         currentSuite = wrapper;
 
-        wrapper->durationOfTestSuite = time_of_execution([&]{
+        wrapper->durationOfTestSuite = timeOfExecution([&]{
             for (auto& t : impl->tests) {
                 printTestCaseHeader(t);
                 impl->runTestCase(t);
@@ -1202,7 +1201,7 @@ namespace kss { namespace test {
 
             sort(suites->begin(), suites->end());
             reportSummary.timeOfTestRun = now();
-            reportSummary.durationOfTestRun = time_of_execution([&]{
+            reportSummary.durationOfTestRun = timeOfExecution([&]{
                 vector<future<bool>> futures;
 
                 for (auto& ts : *suites) {
@@ -1389,4 +1388,10 @@ namespace kss { namespace test { namespace _private {
             cout << "F";
         }
     }
+
+    bool completesWithinSec(const duration<double>& d, const function<void()>& fn) {
+        const auto dur = timeOfExecution(fn);
+        return (dur <= d);
+    }
+
 }}}
