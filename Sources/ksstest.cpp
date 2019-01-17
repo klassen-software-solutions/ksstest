@@ -1358,12 +1358,23 @@ const string& TestSuite::name() const noexcept {
     return _impl->name;
 }
 
+TestSuite::test_case_context_t TestSuite::testCaseContext() const noexcept {
+    assert(currentTest != nullptr);     // Fails if called in a new thread.
+    return currentTest;
+}
+
+void TestSuite::setTestCaseContext(test_case_context_t ctx) noexcept {
+    assert(ctx != nullptr);             // User must not set a null value.
+    currentTest = static_cast<TestCaseWrapper*>(ctx);
+}
+
 
 // MARK: _private Implementation
 
 namespace kss { namespace test { namespace _private {
 
     void _success(void) noexcept {
+        assert(currentTest != nullptr);
         ++currentTest->assertions;
         if (isVerboseMode) {
             cout << ".";
@@ -1371,6 +1382,7 @@ namespace kss { namespace test { namespace _private {
     }
 
     void _failure(const char* expr, const char* filename, unsigned int line) noexcept {
+        assert(currentTest != nullptr);
         ++currentTest->assertions;
         currentTest->failures.push_back(basename(filename) + ": " + to_string(line) + ", " + expr);
         if (isVerboseMode) {

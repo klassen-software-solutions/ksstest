@@ -16,7 +16,7 @@ using namespace kss::test;
 namespace {
 	class BeforeEachSuite : public TestSuite, public HasBeforeEach, public HasAfterAll {
 	public:
-		BeforeEachSuite(const string& name, test_case_list fns): TestSuite(name, fns) {}
+		BeforeEachSuite(const string& name, test_case_list_t fns): TestSuite(name, fns) {}
 
 		virtual void beforeEach() override {
 			++counter;
@@ -31,7 +31,7 @@ namespace {
 
 	class AfterEachSuite : public TestSuite, public HasAfterEach, public HasAfterAll {
 	public:
-		AfterEachSuite(const string& name, test_case_list fns): TestSuite(name, fns) {}
+		AfterEachSuite(const string& name, test_case_list_t fns): TestSuite(name, fns) {}
 
 		virtual void afterEach() override {
 			++counter;
@@ -46,7 +46,7 @@ namespace {
 
 	class BeforeAndAfterEachSuite : public BeforeEachSuite, public HasAfterEach {
 	public:
-		BeforeAndAfterEachSuite(const string& name, test_case_list fns): BeforeEachSuite(name, fns) {}
+		BeforeAndAfterEachSuite(const string& name, test_case_list_t fns): BeforeEachSuite(name, fns) {}
 
 		virtual void afterEach() override {
 			++counter;

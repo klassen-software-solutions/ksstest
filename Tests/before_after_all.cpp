@@ -16,7 +16,7 @@ using namespace kss::test;
 namespace {
 	class BeforeAllSuite : public TestSuite, public HasBeforeAll {
 	public:
-		BeforeAllSuite(const string& name, test_case_list fns) : TestSuite(name, fns) {}
+		BeforeAllSuite(const string& name, test_case_list_t fns) : TestSuite(name, fns) {}
 
 		virtual void beforeAll() override {
 			KSS_ASSERT(counter == 0);
@@ -27,7 +27,7 @@ namespace {
 
 	class AfterAllSuite : public TestSuite, public HasAfterAll {
 	public:
-		AfterAllSuite(const string& name, test_case_list fns) : TestSuite(name, fns) {}
+		AfterAllSuite(const string& name, test_case_list_t fns) : TestSuite(name, fns) {}
 
 		virtual void afterAll() override {
 			KSS_ASSERT(counter == 2);
@@ -38,7 +38,7 @@ namespace {
 
 	class BeforeAndAfterAllSuite : public BeforeAllSuite, public HasAfterAll {
 	public:
-		BeforeAndAfterAllSuite(const string& name, test_case_list fns)
+		BeforeAndAfterAllSuite(const string& name, test_case_list_t fns)
 		: BeforeAllSuite(name, fns) {}
 
 		virtual void afterAll() override {
