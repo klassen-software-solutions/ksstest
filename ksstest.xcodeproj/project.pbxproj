@@ -10,6 +10,7 @@
 		AA7548D620C9BBCE006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D420C9BBCE006581EA /* version.cpp */; };
 		AA7548D720C9BBCE006581EA /* version.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AA7548D520C9BBCE006581EA /* version.hpp */; };
 		AA7548D920C9C112006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D820C9C112006581EA /* version.cpp */; };
+		AACCD48121F00C4F00C270C7 /* bug16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AACCD48021F00C4F00C270C7 /* bug16.cpp */; };
 		AAD09DED2074572F00B527FB /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DEB2074572F00B527FB /* ksstest.cpp */; };
 		AAD09DEE2074572F00B527FB /* ksstest.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AAD09DEC2074572F00B527FB /* ksstest.hpp */; };
 		AAD09DFC2075C9A900B527FB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DFB2075C9A900B527FB /* main.cpp */; };
@@ -51,6 +52,7 @@
 		AA7548D820C9C112006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
 		AA7548DC20C9C5E0006581EA /* configure */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = configure; sourceTree = "<group>"; };
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		AACCD48021F00C4F00C270C7 /* bug16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug16.cpp; sourceTree = "<group>"; };
 		AAD09DE220730A1600B527FB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AAD09DE320730DDA00B527FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AAD09DEB2074572F00B527FB /* ksstest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
@@ -138,10 +140,11 @@
 		AAD09DFA2075C98700B527FB /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				AAD09DFB2075C9A900B527FB /* main.cpp */,
-				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AAD09E022079A2A800B527FB /* before_after_all.cpp */,
 				AAD09E042079ADA600B527FB /* before_after_each.cpp */,
+				AACCD48021F00C4F00C270C7 /* bug16.cpp */,
+				AAD09DFB2075C9A900B527FB /* main.cpp */,
+				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AA7548D820C9C112006581EA /* version.cpp */,
 			);
 			path = Tests;
@@ -272,6 +275,7 @@
 				AAD09E012075CAE800B527FB /* tests.cpp in Sources */,
 				AAD09E052079ADA600B527FB /* before_after_each.cpp in Sources */,
 				AAD09E032079A2A800B527FB /* before_after_all.cpp in Sources */,
+				AACCD48121F00C4F00C270C7 /* bug16.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

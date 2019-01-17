@@ -38,11 +38,6 @@ themselves must be written in C++.
 If you really do need a C-only library, you can still use V4 found on the branch `release_4.2`.
 
 
-## License
-
-There are no restrictions in the use of this software. You are free to use, modify and redistribute it without
-restriction, other than you cannot stop others from doing the same. See the LICENSE file for details.
-
 ## Installing the Library
 
 You can use this code either by building and installing it as a library (useful if you want to use it for a number
@@ -175,6 +170,40 @@ KSS_ASSERT(isTrue([]{
 * throwsException<E>: determines if a block of code throws a specific exception
 * doesNotThrowException: determines if a block of code throws no exceptions
 * terminates: determines if a block of code causes terminate() to be called
+
+### Calling KSS_ASSERT Within a Thread
+
+In order to have the ability to run the test suites in parallel, we make use of some thread local
+storage to keep KSS_ASSERT "happy." However, this has the result that if you create your
+own threads within a test case, that thread local storage will not be initialized (or more
+accuratly, it will be initialized to null values). As a result the KSS_ASSERT calls will fail
+on an assertion (in debug mode) or an illegal access or SEGV (in non-debug mode).
+
+One way to work around this would be to not call KSS_ASSERT within your threads, but
+rather to store the necessary results and call KSS_ASSERT after your threads have 
+completed. Needless to say, that can become cumbersome.
+
+To make this easier the TestSuite class has the ability to obtain the current test case
+context and to set it. You can use this to ensure that the thread local storage in your
+thread is initialized properly before you make any KSS_ASSERT calls. This would look
+like the following (the example assumes that we are adding a test case to a test suite):
+
+```
+make_pair("manual thread", [](TestSuite& ts) {
+    thread th { [&ts, ctx = ts.testCaseContext()] {
+        ts.setTestCaseContext(ctx);
+        KSS_ASSERT(true);
+    }};
+    th.join();
+}),
+```
+
+The important thing to remember is that `testCaseContext()` must be called in the original
+thread that is running the test case while `setTestCaseContext()` must be called in your
+target thread. In addition `ctx` should be passed into that thread by value, not by
+reference. (It is just a pointer so the copy is cheap.)
+
+See the file `Tests/bug16.cpp` for a couple of examples.
 
 ## Limitations
 
