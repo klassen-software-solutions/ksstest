@@ -150,7 +150,11 @@ filename, and the line number of the failure (which is why it must be a macro).
 The KSS_ASSERT macro is suitable for use on its own for simple, one-line expressions. However as your
 expressions get complex, and especially if they require logic and multiple lines, the macro can become
 cumbersome. For that reason we provide a number of lambda-based function calls that can be used with
-the KSS_ASSERT macro to make your tests more readable. We list the functions here, but you should
+the KSS_ASSERT macro to make your tests more readable. In addition, many of these functions will
+display more information than the simple assertion. For example, an `isEqualTo` will not only show
+the failed expression, it will also show the value of the actual result.
+
+We list the functions here, but you should
 read the header file for the full documentation of each, and see the Tests directory for examples of their
 use. Note that each of the functions returns a boolean value and would typically be embedded in a 
 single KSS_ASSERT call. For example,
