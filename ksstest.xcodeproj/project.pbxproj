@@ -10,6 +10,7 @@
 		AA7548D620C9BBCE006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D420C9BBCE006581EA /* version.cpp */; };
 		AA7548D720C9BBCE006581EA /* version.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AA7548D520C9BBCE006581EA /* version.hpp */; };
 		AA7548D920C9C112006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D820C9C112006581EA /* version.cpp */; };
+		AACCD48121F00C4F00C270C7 /* bug16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AACCD48021F00C4F00C270C7 /* bug16.cpp */; };
 		AAD09DED2074572F00B527FB /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DEB2074572F00B527FB /* ksstest.cpp */; };
 		AAD09DEE2074572F00B527FB /* ksstest.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AAD09DEC2074572F00B527FB /* ksstest.hpp */; };
 		AAD09DFC2075C9A900B527FB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DFB2075C9A900B527FB /* main.cpp */; };
@@ -42,6 +43,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA16FA3E218A51CE0059E8DB /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
+		AA16FA46218A65930059E8DB /* intro.dox */ = {isa = PBXFileReference; lastKnownFileType = text; path = intro.dox; sourceTree = "<group>"; };
 		AA7548D020C98866006581EA /* BuildSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem; sourceTree = "<group>"; };
 		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
@@ -49,6 +52,7 @@
 		AA7548D820C9C112006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
 		AA7548DC20C9C5E0006581EA /* configure */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = configure; sourceTree = "<group>"; };
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		AACCD48021F00C4F00C270C7 /* bug16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug16.cpp; sourceTree = "<group>"; };
 		AAD09DE220730A1600B527FB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AAD09DE320730DDA00B527FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AAD09DEB2074572F00B527FB /* ksstest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
@@ -80,6 +84,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA16FA3D218A51AC0059E8DB /* Top Level */ = {
+			isa = PBXGroup;
+			children = (
+				AA7548DC20C9C5E0006581EA /* configure */,
+				AAD1E61D2173F52800B80601 /* Doxyfile */,
+				AAD09DE220730A1600B527FB /* LICENSE */,
+				AA16FA3E218A51CE0059E8DB /* logo.png */,
+				AA7548D320C999A1006581EA /* Makefile */,
+				AAD09DE320730DDA00B527FB /* README.md */,
+			);
+			name = "Top Level";
+			sourceTree = "<group>";
+		};
 		AA6684572038A95200819C6A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -90,11 +107,7 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
-				AA7548DC20C9C5E0006581EA /* configure */,
-				AAD1E61D2173F52800B80601 /* Doxyfile */,
-				AAD09DE320730DDA00B527FB /* README.md */,
-				AAD09DE220730A1600B527FB /* LICENSE */,
-				AA7548D320C999A1006581EA /* Makefile */,
+				AA16FA3D218A51AC0059E8DB /* Top Level */,
 				AA7548D020C98866006581EA /* BuildSystem */,
 				AAA40F191F3CAC04005D181B /* Sources */,
 				AAD09DFA2075C98700B527FB /* Tests */,
@@ -115,6 +128,7 @@
 		AAA40F191F3CAC04005D181B /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				AA16FA46218A65930059E8DB /* intro.dox */,
 				AAD09DEB2074572F00B527FB /* ksstest.cpp */,
 				AAD09DEC2074572F00B527FB /* ksstest.hpp */,
 				AA7548D420C9BBCE006581EA /* version.cpp */,
@@ -126,10 +140,11 @@
 		AAD09DFA2075C98700B527FB /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				AAD09DFB2075C9A900B527FB /* main.cpp */,
-				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AAD09E022079A2A800B527FB /* before_after_all.cpp */,
 				AAD09E042079ADA600B527FB /* before_after_each.cpp */,
+				AACCD48021F00C4F00C270C7 /* bug16.cpp */,
+				AAD09DFB2075C9A900B527FB /* main.cpp */,
+				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AA7548D820C9C112006581EA /* version.cpp */,
 			);
 			path = Tests;
@@ -237,7 +252,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "make prep";
+			shellScript = "make prep\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -260,6 +275,7 @@
 				AAD09E012075CAE800B527FB /* tests.cpp in Sources */,
 				AAD09E052079ADA600B527FB /* before_after_each.cpp in Sources */,
 				AAD09E032079A2A800B527FB /* before_after_all.cpp in Sources */,
+				AACCD48121F00C4F00C270C7 /* bug16.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +344,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -378,6 +395,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};

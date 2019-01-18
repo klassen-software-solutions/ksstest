@@ -4,10 +4,8 @@
 //
 //  Created by Steven W. Klassen on 2018-04-04.
 //  Copyright © 2018 Klassen Software Solutions. All rights reserved.
+//  Licensing follows the MIT License.
 //
-// However a license is hereby granted for this code to be used, modified and redistributed
-// without restriction or requirement, other than you cannot hinder anyone else from doing
-// the same.
 
 #include <kss/test/all.h>
 
