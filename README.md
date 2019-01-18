@@ -210,6 +210,8 @@ KSS_ASSERT(isTrue([]{
 * isEqualTo<T>: determines if a block of code returns a specific value
 * isNotEqualTo<T>: determines if a block of code does not return a specific value
 * throwsException<E>: determines if a block of code throws a specific exception
+* throwsSystemErrorWithCategory: determines if a block throws an std::system_error with a given category
+* throwsSystemErrorWithCode: determines if a block throws an std::system_error with a given code
 * doesNotThrowException: determines if a block of code throws no exceptions
 * completesWithin<Duration>: determines if a block of code completes within a given time
 * terminates: determines if a block of code causes terminate() to be called
@@ -278,7 +280,7 @@ In addition, code should follow our coding standards as described below:
 
 1. Be very familiar with [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines).
     If you choose to write code that breaks one of these, be prepared to justify your decision.
-2. Favour reliability and readability over strict formatting guidelines, but if choose to break a 
+2. Favour reliability and readability over strict formatting guidelines, but if you choose to break a 
     formatting guideline, be prepared to justify your decision.
 3. Follow the C++14 standard. (We won't switch to C++17 until 2020.)
 4. Don't work on the master branch - create your own suitably named branch to work on.
@@ -293,33 +295,36 @@ In addition, code should follow our coding standards as described below:
 
 * C++ header files should use the extention '.hpp' and be all lower case.
 * C header files should user the extention '.h' and be all lower case.
-* C/C++ mixed header files should use '.hpp' and must have appropriate '#if defined __cplusplus' statements.
-* Header files do not have to be limited to a single class. But everthing in them should be
+* C/C++ mixed header files should use '.hpp' and must have appropriate `#if defined __cplusplus` 
+statements.
+* Header files do not have to be limited to a single class. But everything in them should be
   reasonably related.
 * Names of headers files that are for compiling only (i.e. that do not need to be installed with the library) 
 should start with an underscore.
-* Header files must be protected using an '#ifdef' of the form 'ksstest_<filenamebase>_hpp'.
+* Header files must be protected using an `#ifdef` of the form `ksstest_<filenamebase>_hpp`.
 * Keep implementation details out of the header except for very simple classes and structures. 
 Make use of the [PIMPL Pattern](https://en.cppreference.com/w/cpp/language/pimpl) when suitable.
 * Include documenting comments with the public portion of an API. Use a syntax that will work both for 
 Doxygen and Xcode Documentation.
-* Do not use 'using namespace ...' in your header files except where they are reasonably scope limited.
+* Do not use `using namespace ...` in your header files except where they are reasonably scope limited.
 
 #### Source files
 
 * C++ source files should use the extension '.cpp', be all lower case, and should match their '.hpp'.
 * C source files should use the extension '.c', be all lower case, and should match their '.h'.
 * Indent using 4 spaces (no tabs except where required) at the usual locations.
-* Keep lines to no more than 95 characters in length. (It should be possible to view two source
-  files side by side using a 12pt font on a reasonably sized monitor. Note: We are not saying you
-  need to use a 12pt font - but assume that the code reviewers are.)
-* Keep methods and other blocks to no more than 50 lines in length. (It should be possible to
-  view an entire block on a reasonable laptop screen.)
-* Prefer the use of anonymous namespaces over the "static" keyword.
-* When including header files group them in the order of "standard c++ libraries" (e.g. #include <string>), 
-"standard OS libraries" (e.g. #include <sys/wait.h>), "third party libraries", "local includes".
-* Local includes should use the form '#include "filename"'. All other includes should use the form '#include <filename>'.
-* Use 'using namespace ...' and 'use something_t = ...' to reduce the need to explicitly refer to namespaces in your code.
+* Keep lines to no more than 95 characters in length. It should be possible to view two source
+  files side by side using a 12pt font on a reasonably sized monitor.
+* Keep methods and other blocks to no more than 50 lines in length. It should be possible to
+  view an entire block on a reasonable laptop screen.
+* Prefer the use of anonymous namespaces over the `static` keyword.
+* When including header files group them in the order of "standard c++ libraries" 
+(e.g. `#include <string>`), 
+"standard OS libraries" (e.g. `#include <sys/wait.h>`), "third party libraries", then "local includes".
+* Local includes should use the form `#include "filename"`. All other includes should use the form 
+`#include <filename>`.
+* Use `using namespace ...`  and `use something_t = ...` to reduce the need to explicitly refer 
+to namespaces in main portion of your code.
 * Don't repeat the "documentation" comments that are already in the header file in the source file.
   (Our Doxygen configuration ignores the source files and only examines the header files on the
   assumption that the API does not depend on the implementation.)
@@ -335,9 +340,10 @@ Doxygen and Xcode Documentation.
 * Variables (local and member): camelCase.
 * Member variables that would conflict with a method name: _underscorePrefixedCamelCase.
 * "Private" items: This refers to things that should be treated as private but for technical reasons cannot be 
-explicitly made private. They should either be placed in a sub-namespace named "_private" or just given a 
-single underscore prefix.
-* Type aliases: lowercase_t (e.g. 'use requestlist_t = list<T>;')
+explicitly made private. They should either be placed in a sub-namespace named `_private` (preferred)
+or just given a  single underscore prefix (less desirable). Note that you should not have any underscore
+prefixed items in the default namespace.
+* Type aliases: lowercase_t (e.g. `use requestlist_t = list<T>;`)
 * Macros: ALL_UPPERCASE - but keep macros scarce. Work hard to avoid them if possible,
   and be prepared to justify their use.
 
@@ -345,7 +351,7 @@ single underscore prefix.
 
 Always use braces in decision and looping constructs. For single line items these may be on the same line,
 but do not have to be. For multiple line items they should not be combined on the same line. Also
-don't put the opening brace on a separate line, unless the statement requires more than one line.
+don't put the opening brace on a separate line, unless the statement condition requires more than one line.
 
 The following are acceptable:
     
