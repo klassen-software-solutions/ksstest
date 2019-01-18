@@ -48,35 +48,34 @@ namespace {
 }
 
 static BeforeAllSuite suite("BeforeAllTest", {
-	make_pair("test1", [](TestSuite& self) {
-		BeforeAllSuite& bas = dynamic_cast<BeforeAllSuite&>(self);
+	make_pair("test1", [] {
+		BeforeAllSuite& bas = dynamic_cast<BeforeAllSuite&>(TestSuite::get());
 		++bas.counter;
 	}),
-	make_pair("test2", [](TestSuite& self) {
-		BeforeAllSuite& bas = dynamic_cast<BeforeAllSuite&>(self);
+	make_pair("test2", [] {
+		BeforeAllSuite& bas = dynamic_cast<BeforeAllSuite&>(TestSuite::get());
 		++bas.counter;
 	})
 });
 
 static AfterAllSuite suite2("AfterAllTest", {
-	make_pair("test1", [](TestSuite& self) {
-		AfterAllSuite& aas = dynamic_cast<AfterAllSuite&>(self);
+	make_pair("test1", [] {
+		AfterAllSuite& aas = dynamic_cast<AfterAllSuite&>(TestSuite::get());
 		++aas.counter;
 	}),
-	make_pair("test2", [](TestSuite& self) {
-		AfterAllSuite& aas = dynamic_cast<AfterAllSuite&>(self);
+	make_pair("test2", [] {
+		AfterAllSuite& aas = dynamic_cast<AfterAllSuite&>(TestSuite::get());
 		++aas.counter;
 	})
 });
 
 static BeforeAndAfterAllSuite suite3("BeforeAndAfterAllTest", {
-	make_pair("test1", [](TestSuite& self) {
-		BeforeAndAfterAllSuite& baaas = dynamic_cast<BeforeAndAfterAllSuite&>(self);
+	make_pair("test1", [] {
+		BeforeAndAfterAllSuite& baaas = dynamic_cast<BeforeAndAfterAllSuite&>(TestSuite::get());
 		++baaas.counter;
 	}),
-	make_pair("test2", [](TestSuite& self) {
-		BeforeAndAfterAllSuite& baaas = dynamic_cast<BeforeAndAfterAllSuite&>(self);
+	make_pair("test2", [] {
+		BeforeAndAfterAllSuite& baaas = dynamic_cast<BeforeAndAfterAllSuite&>(TestSuite::get());
 		++baaas.counter;
 	})
 });
-

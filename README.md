@@ -24,9 +24,17 @@ Features:
 [API Documentation](http://www.kss.cc/apis/ksstest/docs/index.html) 
 
 
+## What has changed from V5?
+
+Version 6 has simplified the API by no longer requiring that the test suite be passed into each test case.
+Instead if you need to access the suite from within your case, you call `TestSuite::get()` in order to
+obtain a reference to it. We decided to go this route since we were finding that it was very rare that
+we needed the TestSuite hence it did not make sense to require it in each and every test case.
+
+
 ## What has changed from V4?
 
-Version 5 is a complete, ground-up, and non-back-compatible rewrite of this library. The cost of this is that
+Version 5 is a complete, ground-up rewrite of this library. The cost of this is that
 it can no longer be used in a C-only project. This decision was made as the underlying C implementation of the 
 previous versions were really holding back the ability to implement the more advanced features that I wanted to 
 add to the library. In addition I find myself writing less and less C code, so my need for a C testing infrastructure 
@@ -89,26 +97,38 @@ providing the test cases in the constructor. These test cases are not run in the
 later when kss::test::run is called.
 
 Each test case is represented by a pair<string, test_case_fn> object. The string is a name used to identify
-the test case in the various reports. The function is a lambda taking a reference to a TestSuite and returning 
-nothing. The lambda is where you actually run the tests for the test case. (The reference to the TestSuite is to 
-allow you to reference state in the TestSuite instance. Doing so is generally a sign of a poorly designed unit test,
-but there are times when it is necessary.)
+the test case in the various reports.  The lambda is where you actually run the tests for the test case. 
 
-This can look something like the following:
+This can look something like the following. Note that each test case is either a lambda, function, or
+functional, so long as it takes no arguments and has a void return.
 
 ```
+static void myVoidFunction() {
+    KSS_ASSERT(...something...);
+}
+
+namespace {
+    struct myVoidFunctional {
+        void operator()() {
+            KSS_ASSERT(...something...);
+        }
+    };
+}
+
 static TestSuite basicTests("Basic Tests", {
-    make_pair("test1", [](TestSuite&){
+    make_pair("test1", [] {
         KSS_ASSERT(true);
     }),
-    make_pair("testAssertionTypes", [](TestSuite&){
+    make_pair("testAssertionTypes", []{
         KSS_ASSERT(isTrue([]{ return true; }));
         KSS_ASSERT(isFalse([]{ return false; }));
         KSS_ASSERT(isEqualTo<int>(10, []{ return 10; }));
         KSS_ASSERT(isNotEqualTo<int>(10, []{ return 11; }));
         KSS_ASSERT(throwsException<runtime_error>([]{ throw runtime_error("hi"); }));
         KSS_ASSERT(doesNotThrowException([]{}));
-    })
+    }),
+    make_pair("function", myVoidFunction),
+    make_pair("functional", myVoidFunctional())
 });
 ```
 
@@ -125,6 +145,24 @@ file for more complete documentation and the Tests directory for examples.
 * HasBeforeEach: allows for code that will run before each test in the suite
 * HasAfterEach: allows for code that will run after each test in the suite
 * MustNotBeParallel: ensures the test suite will always be run in series regardless of the command line options
+
+If you need to access your subclass you combine the `TestSuite::get()` with a `dynamic_cast` in 
+order to obtain access. For example,
+
+```
+class MyTestSuite : public TestSuite { 
+public:
+    void myCustomFunction();
+    ...remainder of class definition...
+};
+
+static MyTestSuite mts("Test suite name", {
+    make_pair("test1", [] {
+        auto& ts = dynamic_cast<MyTestSuite&>(TestSuite::get());
+        ts.myCustomFunction();
+    })
+});
+```
 
 ### kss::test::skip
 
@@ -194,8 +232,9 @@ thread is initialized properly before you make any KSS_ASSERT calls. This would 
 like the following (the example assumes that we are adding a test case to a test suite):
 
 ```
-make_pair("manual thread", [](TestSuite& ts) {
-    thread th { [&ts, ctx = ts.testCaseContext()] {
+make_pair("manual thread", [] {
+    auto& ts = TestSuite::get();
+    thread th { [&ts, ctx=ts.testCaseContext()] {
         ts.setTestCaseContext(ctx);
         KSS_ASSERT(true);
     }};
@@ -257,10 +296,13 @@ In addition, code should follow our coding standards as described below:
 * C/C++ mixed header files should use '.hpp' and must have appropriate '#if defined __cplusplus' statements.
 * Header files do not have to be limited to a single class. But everthing in them should be
   reasonably related.
-* Names of headers files that are for compiling only (i.e. that do not need to be installed with the library) should start with an underscore.
+* Names of headers files that are for compiling only (i.e. that do not need to be installed with the library) 
+should start with an underscore.
 * Header files must be protected using an '#ifdef' of the form 'ksstest_<filenamebase>_hpp'.
-* Keep implementation details out of the header except for very simple classes and structures. Make use of the [PIMPL Pattern](https://en.cppreference.com/w/cpp/language/pimpl) when suitable.
-* Include documenting comments with the public portion of an API. Use a syntax that will work both for Doxygen and Xcode Documentation.
+* Keep implementation details out of the header except for very simple classes and structures. 
+Make use of the [PIMPL Pattern](https://en.cppreference.com/w/cpp/language/pimpl) when suitable.
+* Include documenting comments with the public portion of an API. Use a syntax that will work both for 
+Doxygen and Xcode Documentation.
 * Do not use 'using namespace ...' in your header files except where they are reasonably scope limited.
 
 #### Source files
@@ -274,7 +316,8 @@ In addition, code should follow our coding standards as described below:
 * Keep methods and other blocks to no more than 50 lines in length. (It should be possible to
   view an entire block on a reasonable laptop screen.)
 * Prefer the use of anonymous namespaces over the "static" keyword.
-* When including header files group them in the order of "standard c++ libraries" (e.g. #include <string>), "standard OS libraries" (e.g. #include <sys/wait.h>), "third party libraries", "local includes".
+* When including header files group them in the order of "standard c++ libraries" (e.g. #include <string>), 
+"standard OS libraries" (e.g. #include <sys/wait.h>), "third party libraries", "local includes".
 * Local includes should use the form '#include "filename"'. All other includes should use the form '#include <filename>'.
 * Use 'using namespace ...' and 'use something_t = ...' to reduce the need to explicitly refer to namespaces in your code.
 * Don't repeat the "documentation" comments that are already in the header file in the source file.
@@ -291,7 +334,9 @@ In addition, code should follow our coding standards as described below:
 * Classes: CamelCase except for certain cases where we want to make them look like a keyword.
 * Variables (local and member): camelCase.
 * Member variables that would conflict with a method name: _underscorePrefixedCamelCase.
-* "Private" items: This refers to things that should be treated as private but for technical reasons cannot be explicitly made private. They should either be placed in a sub-namespace named "_private" or just given a single underscore prefix.
+* "Private" items: This refers to things that should be treated as private but for technical reasons cannot be 
+explicitly made private. They should either be placed in a sub-namespace named "_private" or just given a 
+single underscore prefix.
 * Type aliases: lowercase_t (e.g. 'use requestlist_t = list<T>;')
 * Macros: ALL_UPPERCASE - but keep macros scarce. Work hard to avoid them if possible,
   and be prepared to justify their use.
