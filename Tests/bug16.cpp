@@ -15,16 +15,18 @@ using namespace kss::test;
 
 
 static TestSuite ts("bug16", {
-    make_pair("manual thread", [](TestSuite& ts) {
-        thread th { [&ts, ctx = ts.testCaseContext()] {
+    make_pair("thread", [] {
+        auto& ts = TestSuite::get();
+        thread th { [&ts, ctx=ts.testCaseContext()] {
             ts.setTestCaseContext(ctx);
             KSS_ASSERT(true);
 //            KSS_ASSERT(false);
         }};
         th.join();
     }),
-    make_pair("async", [](TestSuite& ts) {
-        auto fut = async([&ts, ctx = ts.testCaseContext()]{
+    make_pair("async", [] {
+        auto& ts = TestSuite::get();
+        auto fut = async([&ts, ctx=ts.testCaseContext()]{
             ts.setTestCaseContext(ctx);
             KSS_ASSERT(true);
 //            KSS_ASSERT(false);

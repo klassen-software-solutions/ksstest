@@ -713,14 +713,14 @@ struct TestSuite::Impl {
             TestCaseWrapper wrapper;
             wrapper.name = "BeforeAll";
             wrapper.owner = parent;
-            wrapper.fn = [=](TestSuite& suite) { hba->beforeAll(); };
+            wrapper.fn = [hba] { hba->beforeAll(); };
             tests.insert(tests.begin(), move(wrapper));
         }
         if (auto* haa = as<HasAfterAll>(parent)) {
             TestCaseWrapper wrapper;
             wrapper.name = "AfterAll";
             wrapper.owner = parent;
-            wrapper.fn = [=](TestSuite& suite) { haa->afterAll(); };
+            wrapper.fn = [haa] { haa->afterAll(); };
             tests.push_back(move(wrapper));
         }
     }
@@ -733,7 +733,7 @@ struct TestSuite::Impl {
                 if (auto* hbe = as<HasBeforeEach>(parent)) {
                     if (t.name != "BeforeAll" && t.name != "AfterAll") hbe->beforeEach();
                 }
-                t.fn(*parent);
+                t.fn();
                 if (auto* haa = as<HasAfterEach>(parent)) {
                     if (t.name != "BeforeAll" && t.name != "AfterAll") haa->afterEach();
                 }
@@ -1388,6 +1388,12 @@ const string& TestSuite::name() const noexcept {
     return _impl->name;
 }
 
+TestSuite& TestSuite::get() noexcept {
+    assert(currentSuite != nullptr);     // Fails if called in a new thread.
+    assert(currentSuite->suite != nullptr);
+    return *(currentSuite->suite);
+}
+
 TestSuite::test_case_context_t TestSuite::testCaseContext() const noexcept {
     assert(currentTest != nullptr);     // Fails if called in a new thread.
     return currentTest;
@@ -1403,7 +1409,7 @@ void TestSuite::setTestCaseContext(test_case_context_t ctx) noexcept {
 
 namespace kss { namespace test { namespace _private {
 
-    void _success(void) noexcept {
+    void success(void) noexcept {
         assert(currentTest != nullptr);
         ++currentTest->assertions;
         if (isVerboseMode) {
@@ -1411,7 +1417,7 @@ namespace kss { namespace test { namespace _private {
         }
     }
 
-    void _failure(const char* expr, const char* filename, unsigned int line) noexcept {
+    void failure(const char* expr, const char* filename, unsigned int line) noexcept {
         assert(currentTest != nullptr);
         ++currentTest->assertions;
         auto f = make_pair(basename(filename) + ": " + to_string(line) + ", " + expr,

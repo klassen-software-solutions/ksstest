@@ -23,8 +23,8 @@
 namespace kss { namespace test {
 
     namespace _private {
-        void _success(void) noexcept;
-        void _failure(const char* expr, const char* filename, unsigned int line) noexcept;
+        void success(void) noexcept;
+        void failure(const char* expr, const char* filename, unsigned int line) noexcept;
         void setFailureDetails(const std::string& d);
         std::string demangleName(const char* mangledName);
 
@@ -90,7 +90,7 @@ namespace kss { namespace test {
      Macro to perform a single test. This works like assert but instead of halting
      execution it updates the internal status of the test suit.
      */
-#	define KSS_ASSERT(expr) ((void) ((expr) ? kss::test::_private::_success() : kss::test::_private::_failure(#expr, __FILE__, __LINE__)))
+#	define KSS_ASSERT(expr) ((void) ((expr) ? kss::test::_private::success() : kss::test::_private::failure(#expr, __FILE__, __LINE__)))
 
     // The following are intended to be used inside KSS_ASSERT in order to make the
     // test intent clearer. They are especially useful if your test contains multiple
@@ -270,7 +270,7 @@ namespace kss { namespace test {
      */
     class TestSuite {
     public:
-        using test_case_fn = std::function<void(TestSuite&)>;
+        using test_case_fn = std::function<void()>;
         using test_case_list_t = std::initializer_list<std::pair<std::string, test_case_fn>>;
         using test_case_context_t = void*;
 
@@ -298,8 +298,15 @@ namespace kss { namespace test {
         const std::string& name() const noexcept;
 
         /*!
+         Obtain the test suite from the current test case. This is only valid if called
+         from within a test case and will fail an assertion if that is not the case.
+         */
+        static TestSuite& get() noexcept;
+
+        /*!
          Obtain the context of the current test case. This must be called in the thread
-         where the test case itself is running.
+         where the test case itself is running and will fail an assertion if that is
+         not the case.
          */
         test_case_context_t testCaseContext() const noexcept;
 
@@ -317,9 +324,9 @@ namespace kss { namespace test {
 
          Example (assumes this is a test case being added to a test suite):
          @code
-         make_pair("my test", [](TestSuite& ts) {
-             auto ctx = ts.testCaseContext();
-             thread myThread { [&] {
+         make_pair("my test", [] {
+             auto& ts = TestSuite::get();
+             thread myThread { [&ts, ctx=ts.testCaseContext()] {
                  ts.setTestCaseContext(ctx);
                  KSS_ASSERT(...whatever...);
              }};
