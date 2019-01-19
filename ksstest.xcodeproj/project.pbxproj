@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA4D19C421F3B63B002A7FBB /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA4D19C321F3B63B002A7FBB /* ksstest.cpp */; };
 		AA7548D620C9BBCE006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D420C9BBCE006581EA /* version.cpp */; };
 		AA7548D720C9BBCE006581EA /* version.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AA7548D520C9BBCE006581EA /* version.hpp */; };
 		AA7548D920C9C112006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D820C9C112006581EA /* version.cpp */; };
 		AACCD48121F00C4F00C270C7 /* bug16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AACCD48021F00C4F00C270C7 /* bug16.cpp */; };
 		AACCD49121F194BE00C270C7 /* bug18.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AACCD49021F194BE00C270C7 /* bug18.cpp */; };
-		AACCD49421F1956C00C270C7 /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AACCD49221F1956B00C270C7 /* ksstest.cpp */; };
 		AACCD49521F1956C00C270C7 /* ksstest.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AACCD49321F1956C00C270C7 /* ksstest.hpp */; };
 		AAD09DFC2075C9A900B527FB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09DFB2075C9A900B527FB /* main.cpp */; };
 		AAD09DFF2075CA6500B527FB /* libksstest.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA40F121F3CAAF2005D181B /* libksstest.dylib */; };
@@ -46,6 +46,7 @@
 /* Begin PBXFileReference section */
 		AA16FA3E218A51CE0059E8DB /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		AA16FA46218A65930059E8DB /* intro.dox */ = {isa = PBXFileReference; lastKnownFileType = text; path = intro.dox; sourceTree = "<group>"; };
+		AA4D19C321F3B63B002A7FBB /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
 		AA7548D020C98866006581EA /* BuildSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem; sourceTree = "<group>"; };
 		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
@@ -55,7 +56,6 @@
 		AAA40F121F3CAAF2005D181B /* libksstest.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libksstest.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		AACCD48021F00C4F00C270C7 /* bug16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug16.cpp; sourceTree = "<group>"; };
 		AACCD49021F194BE00C270C7 /* bug18.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug18.cpp; sourceTree = "<group>"; };
-		AACCD49221F1956B00C270C7 /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
 		AACCD49321F1956C00C270C7 /* ksstest.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ksstest.hpp; sourceTree = "<group>"; };
 		AAD09DE220730A1600B527FB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AAD09DE320730DDA00B527FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -131,7 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				AA16FA46218A65930059E8DB /* intro.dox */,
-				AACCD49221F1956B00C270C7 /* ksstest.cpp */,
+				AA4D19C321F3B63B002A7FBB /* ksstest.cpp */,
 				AACCD49321F1956C00C270C7 /* ksstest.hpp */,
 				AA7548D420C9BBCE006581EA /* version.cpp */,
 				AA7548D520C9BBCE006581EA /* version.hpp */,
@@ -265,7 +265,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA7548D620C9BBCE006581EA /* version.cpp in Sources */,
-				AACCD49421F1956C00C270C7 /* ksstest.cpp in Sources */,
+				AA4D19C421F3B63B002A7FBB /* ksstest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
