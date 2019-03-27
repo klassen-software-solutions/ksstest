@@ -8,4 +8,4 @@
 #  Licensing follows the MIT License.
 #
 
-source BuildSystem/configure_common.sh
+. BuildSystem/configure_common.sh
