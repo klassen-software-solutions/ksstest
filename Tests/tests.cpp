@@ -75,6 +75,18 @@ static TestSuite basicTests("Basic Tests", {
         }));
         KSS_ASSERT(completesWithin(1s, []{}));
 	}),
+    make_pair("isCloseTo", [] {
+        KSS_ASSERT(isCloseTo<int>(10, 2, []{ return 11; }));
+        KSS_ASSERT(isCloseTo<int>(10, []{ return 10; }));
+        KSS_ASSERT(isCloseTo<double>(10.001, 0.01, []{ return 10.0; }));
+        KSS_ASSERT(isCloseTo<double>(10.1, []{ return 10.1; }));
+    }),
+    make_pair("isNotCloseTo", [] {
+        KSS_ASSERT(isNotCloseTo<int>(10, 2, []{ return 13; }));
+        KSS_ASSERT(isNotCloseTo<int>(10, []{ return 11; }));
+        KSS_ASSERT(isNotCloseTo<double>(10.1, 0.01, []{ return 10.0; }));
+        KSS_ASSERT(isNotCloseTo<double>(10.1, []{ return 10.0001; }));
+    }),
     make_pair("quiet and verbose", [] {
         // No meaningfull test since we don't know what mode we are running. But at least
         // we can check that the API doesn't change.

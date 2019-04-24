@@ -7,9 +7,16 @@
 //  Licensing follows the MIT License.
 //
 
+#include "ksstest.hpp"
+
+#include <cxxabi.h>
+#include <getopt.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
 #include <algorithm>
 #include <cassert>
-#include <cstdlib>
 #include <ctime>
 #include <exception>
 #include <fstream>
@@ -23,14 +30,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <cxxabi.h>
-#include <getopt.h>
-#include <signal.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-#include "ksstest.hpp"
 
 using namespace std;
 using namespace std::chrono;

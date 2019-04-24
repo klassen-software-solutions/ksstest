@@ -4,7 +4,7 @@
 
 This is a simple C++ unit testing tool. It's main advantage over other unit testing tools is that it is designed
 to be easily embedded into your test applications. Specifically, you don't have to build this as a library and
-add it a a prerequesite to your projects - you can simply copy the two files "ksstest.h" and "ksstest.cpp" into
+add it a a prerequesite to your projects - you can simply copy the two files "ksstest.hpp" and "ksstest.cpp" into
 your project.
 
 Features:
@@ -60,9 +60,8 @@ make
 make check
 sudo make install
 ```
-This will create the library and install it under /usr/local. At present the configure file doesn't do anything,
-but this will likely change in the near future to allow the compilers, environment variables and install location
-to be modified. Presently this code has been tested on macOS and Ubuntu Linux.
+This will create the library and install it under /usr/local. Presently this code has been tested on macOS
+and Ubuntu Linux.
 
 In order to embed it in your own code, just copy the files ksstest.hpp and ksstest.cpp into your system. They
 are designed to have minimal external requirements so they should work as is with any reasonably modern
@@ -209,6 +208,8 @@ KSS_ASSERT(isTrue([]{
 * isFalse: determines if a block of code returns a false value
 * isEqualTo<T>: determines if a block of code returns a specific value
 * isNotEqualTo<T>: determines if a block of code does not return a specific value
+* isCloseTo<T>: determines if a block of code returns a value within a given tolerance
+* isNotCloseTo<T>: determines if a block of code returns a value not within a given tolerance
 * throwsException<E>: determines if a block of code throws a specific exception
 * throwsSystemErrorWithCategory: determines if a block throws an std::system_error with a given category
 * throwsSystemErrorWithCode: determines if a block throws an std::system_error with a given code
