@@ -1,0 +1,19 @@
+name: On Commit
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build
+      run: |
+        ./configure
+        make -j 4
+    - name: Run tests
+      run: |
+        make -j 4 check
