@@ -288,6 +288,9 @@ namespace kss { namespace test {
      Returns true if the lambda completes successfuly within the given duration. Note
      that Duration must be a valid std::duration.
 
+     If it fails to return within 4x the given duration, then it gives up and terminates the
+     process rather than waiting forever.
+
      example:
      @code
      KSS_ASSERT(completesWithin(2ms, []{ doSomeWork(); }));
