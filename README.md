@@ -31,6 +31,14 @@ Instead if you need to access the suite from within your case, you call `TestSui
 obtain a reference to it. We decided to go this route since we were finding that it was very rare that
 we needed the TestSuite hence it did not make sense to require it in each and every test case.
 
+### Version 6.1
+
+Version 6.1 includes the following changes:
+
+* Fixes bug 30 (`completesWithin` may never stop),
+* Adds an `isCloseTo` method, 
+* Adds support for CI, and
+* Adds an option to stop on the first failure or error.
 
 ## What has changed in V5?
 
