@@ -65,6 +65,8 @@
 		AAD09E022079A2A800B527FB /* before_after_all.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = before_after_all.cpp; sourceTree = "<group>"; };
 		AAD09E042079ADA600B527FB /* before_after_each.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = before_after_each.cpp; sourceTree = "<group>"; };
 		AAD1E61D2173F52800B80601 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
+		AAFF8CB5238DB1F40077628E /* .github */ = {isa = PBXFileReference; lastKnownFileType = folder; path = .github; sourceTree = "<group>"; };
+		AAFF8CB6238DB1F40077628E /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,8 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
+				AAFF8CB5238DB1F40077628E /* .github */,
+				AAFF8CB6238DB1F40077628E /* .gitignore */,
 				AA16FA3D218A51AC0059E8DB /* Top Level */,
 				AA7548D020C98866006581EA /* BuildSystem */,
 				AAA40F191F3CAC04005D181B /* Sources */,
