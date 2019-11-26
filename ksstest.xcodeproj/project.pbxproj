@@ -19,6 +19,7 @@
 		AAD09E012075CAE800B527FB /* tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09E002075CAE800B527FB /* tests.cpp */; };
 		AAD09E032079A2A800B527FB /* before_after_all.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09E022079A2A800B527FB /* before_after_all.cpp */; };
 		AAD09E052079ADA600B527FB /* before_after_each.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD09E042079ADA600B527FB /* before_after_each.cpp */; };
+		AAFF8CB8238DB5FB0077628E /* bug30.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAFF8CB7238DB5FB0077628E /* bug30.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +66,9 @@
 		AAD09E022079A2A800B527FB /* before_after_all.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = before_after_all.cpp; sourceTree = "<group>"; };
 		AAD09E042079ADA600B527FB /* before_after_each.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = before_after_each.cpp; sourceTree = "<group>"; };
 		AAD1E61D2173F52800B80601 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
+		AAFF8CB5238DB1F40077628E /* .github */ = {isa = PBXFileReference; lastKnownFileType = folder; path = .github; sourceTree = "<group>"; };
+		AAFF8CB6238DB1F40077628E /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		AAFF8CB7238DB5FB0077628E /* bug30.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug30.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +113,8 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
+				AAFF8CB5238DB1F40077628E /* .github */,
+				AAFF8CB6238DB1F40077628E /* .gitignore */,
 				AA16FA3D218A51AC0059E8DB /* Top Level */,
 				AA7548D020C98866006581EA /* BuildSystem */,
 				AAA40F191F3CAC04005D181B /* Sources */,
@@ -146,6 +152,7 @@
 				AAD09E042079ADA600B527FB /* before_after_each.cpp */,
 				AACCD48021F00C4F00C270C7 /* bug16.cpp */,
 				AACCD49021F194BE00C270C7 /* bug18.cpp */,
+				AAFF8CB7238DB5FB0077628E /* bug30.cpp */,
 				AAD09DFB2075C9A900B527FB /* main.cpp */,
 				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AA7548D820C9C112006581EA /* version.cpp */,
@@ -277,6 +284,7 @@
 				AAD09DFC2075C9A900B527FB /* main.cpp in Sources */,
 				AA7548D920C9C112006581EA /* version.cpp in Sources */,
 				AAD09E012075CAE800B527FB /* tests.cpp in Sources */,
+				AAFF8CB8238DB5FB0077628E /* bug30.cpp in Sources */,
 				AAD09E052079ADA600B527FB /* before_after_each.cpp in Sources */,
 				AAD09E032079A2A800B527FB /* before_after_all.cpp in Sources */,
 				AACCD48121F00C4F00C270C7 /* bug16.cpp in Sources */,

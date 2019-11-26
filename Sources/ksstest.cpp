@@ -7,16 +7,10 @@
 //  Licensing follows the MIT License.
 //
 
-#include "ksstest.hpp"
-
-#include <cxxabi.h>
-#include <getopt.h>
-#include <signal.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
 #include <algorithm>
+#include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <ctime>
 #include <exception>
 #include <fstream>
@@ -29,7 +23,16 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
+
+#include <cxxabi.h>
+#include <getopt.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+#include "ksstest.hpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -1462,7 +1465,29 @@ namespace kss { namespace test { namespace _private {
     }
 
     bool completesWithinSec(const duration<double>& d, const function<void()>& fn) {
+        // The condition variable is used to ensure that fn does not cause us to stop
+        // more than 4x the requested duration. If it does, we terminate the process.
+        condition_variable cv;
+        mutex m;
+        bool hasCompleted = false;
+        thread th([&] {
+            unique_lock<mutex> l(m);
+            if (!hasCompleted) {
+                cv.wait_for(l, d * 4);
+                if (!hasCompleted) {
+                    terminate();
+                }
+            }
+        });
+
         const auto dur = timeOfExecution(fn);
+        {
+            lock_guard<mutex> l(m);
+            hasCompleted = true;
+            cv.notify_all();
+        }
+        th.join();
+
         const auto ret = (dur <= d);
         if (!ret) {
             _private::setFailureDetails("actual duration was " + to_string(dur.count()) + "s");
