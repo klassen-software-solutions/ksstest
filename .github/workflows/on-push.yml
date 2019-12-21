@@ -1,4 +1,4 @@
-name: On Commit
+name: On Push
 
 on: [push]
 
@@ -10,10 +10,17 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
     - uses: actions/checkout@v1
+
     - name: Build
       run: |
         ./configure
         make -j 4
+
     - name: Run tests
       run: |
         make -j 4 check
+
+    - name: Static Analysis
+      if: runner.os == 'macOS' && startsWith(github.ref, 'refs/heads/feature/')
+      run: |
+        make analyze

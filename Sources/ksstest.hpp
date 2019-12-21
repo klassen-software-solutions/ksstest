@@ -163,7 +163,14 @@ namespace kss { namespace test {
      */
     template <class T>
     bool isNotEqualTo(const T& a, const std::function<T()>& fn) {
-        return (!(fn() == a));
+        const auto res = fn();
+        bool ret = (res != a);
+        if (!ret) {
+            std::ostringstream strm;
+            strm << "did not expect (" << a << ")";
+            _private::setFailureDetails(strm.str());
+        }
+        return ret;
     }
 
     /*!
