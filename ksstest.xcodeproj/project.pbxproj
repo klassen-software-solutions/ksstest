@@ -94,6 +94,7 @@
 		AA16FA3D218A51AC0059E8DB /* Top Level */ = {
 			isa = PBXGroup;
 			children = (
+				AAFF8CB6238DB1F40077628E /* .gitignore */,
 				AA7548DC20C9C5E0006581EA /* configure */,
 				AAD09DE220730A1600B527FB /* LICENSE */,
 				AA16FA3E218A51CE0059E8DB /* logo.png */,
@@ -113,9 +114,8 @@
 		AAA40F091F3CAAF2005D181B = {
 			isa = PBXGroup;
 			children = (
-				AAFF8CB5238DB1F40077628E /* .github */,
-				AAFF8CB6238DB1F40077628E /* .gitignore */,
 				AA16FA3D218A51AC0059E8DB /* Top Level */,
+				AAFF8CB5238DB1F40077628E /* .github */,
 				AA7548D020C98866006581EA /* BuildSystem */,
 				AAA40F191F3CAC04005D181B /* Sources */,
 				AAD09DFA2075C98700B527FB /* Tests */,
