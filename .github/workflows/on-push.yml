@@ -12,12 +12,14 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Build
+      if: "!startsWith(github.ref, 'refs/tags/')"
       run: |
         ./configure
         make prep
         make -j 4
 
     - name: Run tests
+      if: "!startsWith(github.ref, 'refs/tags/')"
       run: |
         make -j 4 check
 
