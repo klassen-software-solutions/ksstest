@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AA4D19C421F3B63B002A7FBB /* ksstest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA4D19C321F3B63B002A7FBB /* ksstest.cpp */; };
+		AA6C3BC023AE98FF00ACE3C2 /* bug35.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA6C3BBF23AE98FF00ACE3C2 /* bug35.cpp */; };
 		AA7548D620C9BBCE006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D420C9BBCE006581EA /* version.cpp */; };
 		AA7548D720C9BBCE006581EA /* version.hpp in Headers */ = {isa = PBXBuildFile; fileRef = AA7548D520C9BBCE006581EA /* version.hpp */; };
 		AA7548D920C9C112006581EA /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7548D820C9C112006581EA /* version.cpp */; };
@@ -48,6 +49,7 @@
 		AA16FA3E218A51CE0059E8DB /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		AA16FA46218A65930059E8DB /* intro.dox */ = {isa = PBXFileReference; lastKnownFileType = text; path = intro.dox; sourceTree = "<group>"; };
 		AA4D19C321F3B63B002A7FBB /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
+		AA6C3BBF23AE98FF00ACE3C2 /* bug35.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug35.cpp; sourceTree = "<group>"; };
 		AA7548D020C98866006581EA /* BuildSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem; sourceTree = "<group>"; };
 		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				AACCD48021F00C4F00C270C7 /* bug16.cpp */,
 				AACCD49021F194BE00C270C7 /* bug18.cpp */,
 				AAFF8CB7238DB5FB0077628E /* bug30.cpp */,
+				AA6C3BBF23AE98FF00ACE3C2 /* bug35.cpp */,
 				AAD09DFB2075C9A900B527FB /* main.cpp */,
 				AAD09E002075CAE800B527FB /* tests.cpp */,
 				AA7548D820C9C112006581EA /* version.cpp */,
@@ -283,6 +286,7 @@
 			files = (
 				AAD09DFC2075C9A900B527FB /* main.cpp in Sources */,
 				AA7548D920C9C112006581EA /* version.cpp in Sources */,
+				AA6C3BC023AE98FF00ACE3C2 /* bug35.cpp in Sources */,
 				AAD09E012075CAE800B527FB /* tests.cpp in Sources */,
 				AAFF8CB8238DB5FB0077628E /* bug30.cpp in Sources */,
 				AAD09E052079ADA600B527FB /* before_after_each.cpp in Sources */,
