@@ -24,6 +24,8 @@ jobs:
         make -j 4 check
 
     - name: Static Analysis
+      if: "github.event.size > 0 && !startsWith(github.event.commits[0].message, 'WIP')"
       if: runner.os == 'macOS' && startsWith(github.ref, 'refs/heads/feature/')
       run: |
+        echo ${{ github.event.commits[0].message }}
         make analyze
