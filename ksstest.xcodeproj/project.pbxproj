@@ -50,6 +50,7 @@
 		AA16FA46218A65930059E8DB /* intro.dox */ = {isa = PBXFileReference; lastKnownFileType = text; path = intro.dox; sourceTree = "<group>"; };
 		AA4D19C321F3B63B002A7FBB /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
 		AA6C3BBF23AE98FF00ACE3C2 /* bug35.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug35.cpp; sourceTree = "<group>"; };
+		AA6C3BD023B127DA00ACE3C2 /* .gitattributes */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitattributes; sourceTree = "<group>"; };
 		AA7548D020C98866006581EA /* BuildSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem; sourceTree = "<group>"; };
 		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
@@ -94,6 +95,7 @@
 		AA16FA3D218A51AC0059E8DB /* Top Level */ = {
 			isa = PBXGroup;
 			children = (
+				AA6C3BD023B127DA00ACE3C2 /* .gitattributes */,
 				AAFF8CB6238DB1F40077628E /* .gitignore */,
 				AA7548DC20C9C5E0006581EA /* configure */,
 				AAD09DE220730A1600B527FB /* LICENSE */,
