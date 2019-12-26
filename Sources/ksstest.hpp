@@ -16,6 +16,7 @@
 #include <exception>
 #include <functional>
 #include <initializer_list>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <sstream>
@@ -219,6 +220,82 @@ namespace kss { namespace test {
     template <class T>
     inline bool isNotCloseTo(const T& a, const std::function<T()>& fn) {
         return isNotCloseTo<T>(a, std::numeric_limits<T>::epsilon(), fn);
+    }
+
+    /*!
+     Returns true if the lambda returns a value that is less than a.
+     example:
+     @code
+     KSS_ASSERT(isLessThan<int>(10, []{ return 9; }));
+     @endcode
+     */
+    template <class T>
+    bool isLessThan(const T& a, const std::function<T()>& fn) {
+        const auto res = fn();
+        bool ret = (res < a);
+        if (!ret) {
+            std::ostringstream strm;
+            strm << "expected a value less than (" << a << "), actual was (" << res << ")";
+            _private::setFailureDetails(strm.str());
+        }
+        return ret;
+    }
+
+    /*!
+     Returns true if the lambda returns a value that is less than or equal to a.
+     example:
+     @code
+     KSS_ASSERT(isLessThanOrEqualTo<int>(10, []{ return 9; }));
+     @endcode
+     */
+    template <class T>
+    bool isLessThanOrEqualTo(const T& a, const std::function<T()>& fn) {
+        const auto res = fn();
+        bool ret = (res <= a);
+        if (!ret) {
+            std::ostringstream strm;
+            strm << "expected a value less than or equal to (" << a << "), actual was (" << res << ")";
+            _private::setFailureDetails(strm.str());
+        }
+        return ret;
+    }
+
+    /*!
+     Returns true if the lambda returns a value that is greater than a.
+     example:
+     @code
+     KSS_ASSERT(isGreaterThan<int>(10, []{ return 11; }));
+     @endcode
+     */
+    template <class T>
+    bool isGreaterThan(const T& a, const std::function<T()>& fn) {
+        const auto res = fn();
+        bool ret = (res > a);
+        if (!ret) {
+            std::ostringstream strm;
+            strm << "expected a value greater than (" << a << "), actual was (" << res << ")";
+            _private::setFailureDetails(strm.str());
+        }
+        return ret;
+    }
+
+    /*!
+     Returns true if the lambda returns a value that is greater than or equal to a.
+     example:
+     @code
+     KSS_ASSERT(isGreaterThanOrEqualTo<int>(10, []{ return 11; }));
+     @endcode
+     */
+    template <class T>
+    bool isGreaterThanOrEqualTo(const T& a, const std::function<T()>& fn) {
+        const auto res = fn();
+        bool ret = (res >= a);
+        if (!ret) {
+            std::ostringstream strm;
+            strm << "expected a value greater than or equal to (" << a << "), actual was (" << res << ")";
+            _private::setFailureDetails(strm.str());
+        }
+        return ret;
     }
 
     /*!
