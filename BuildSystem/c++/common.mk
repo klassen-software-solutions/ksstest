@@ -4,8 +4,7 @@
 PROJECTDIR := $(shell pwd)
 PACKAGEBASENAME := $(shell basename `pwd` | tr '[:upper:]' '[:lower:]')
 PACKAGEBASENAME := $(shell echo $(PACKAGEBASENAME) | sed 's/^$(PREFIX)//')
-BUILDSYSTEMDIR := $(PROJECTDIR)/BuildSystem
-VERSION := $(shell $(BUILDSYSTEMDIR)/revision.sh)
+VERSION := $(shell BuildSystem/common/revision.sh)
 VERSIONMACRO := $(shell echo $(PREFIX)$(PACKAGEBASENAME) | tr '[:lower:]' '[:upper:]')_VERSION
 TARGETDIR := /usr/local
 
@@ -48,6 +47,9 @@ ifeq ($(wildcard Dependancies/prereqs.json),)
 	PREREQS_LICENSE_FILE :=
 endif
 
+CFLAGS := $(CFLAGS) -I$(BUILDDIR)/include
+CXXFLAGS := $(CXXFLAGS) -I$(BUILDDIR)/include -std=c++14 -Wno-unknown-pragmas
+
 KSS_INSTALL_PREFIX ?= /opt/$(PREFIX)
 CFLAGS := $(CFLAGS) -I$(KSS_INSTALL_PREFIX)/include
 LDFLAGS := $(LDFLAGS) -L$(KSS_INSTALL_PREFIX)/lib
@@ -58,9 +60,6 @@ LDFLAGS := $(LDFLAGS) -L$(LIBDIR)
 
 -include $(PROJECTDIR)/config.local
 -include $(PROJECTDIR)/config.defs
-
-CFLAGS := $(CFLAGS) -I$(BUILDDIR)/include
-CXXFLAGS := $(CXXFLAGS) -I$(BUILDDIR)/include -std=c++14 -Wno-unknown-pragmas
 
 .PHONY: build library install check analyze clean cleanall directory-checks hello
 .PHONY: prep docs help prereqs
@@ -84,13 +83,13 @@ build: library $(PREREQS_LICENSE_FILE)
 library: $(LIBPATH)
 
 Dependancies/prereqs-licenses.json: Dependancies/prereqs.json
-	BuildSystem/license_scanner.py
+	BuildSystem/common/license_scanner.py
 
 
 # Use "make help" to give some instructions on how the build system works.
 
 help:
-	@cat BuildSystem/makefile_help.txt
+	@cat BuildSystem/c++/makefile_help.txt
 
 # Use "make hello" to test that the names are what you would expect.
 
@@ -111,7 +110,7 @@ ifneq ($(wildcard Tests/.*),)
 endif
 
 prereqs:
-	BuildSystem/update_prereqs.py
+	BuildSystem/common/update_prereqs.py
 
 # Build the library
 
@@ -164,7 +163,7 @@ Sources/_license_internal.h: LICENSE
 	@echo "" >> $@
 
 Sources/all.h: $(HDRS)
-	(cd Sources ; PREFIX=$(LIBNAME) $(BUILDSYSTEMDIR)/generate_all_h.sh) > $@
+	(cd Sources ; PREFIX=$(LIBNAME) $(PROJECTDIR)/BuildSystem/c++/generate_all_h.sh) > $@
 
 $(HEADERDIR):
 	echo build $(HEADERDIR)
@@ -191,7 +190,7 @@ endif
 	$(LDPATHEXPR) $(TESTPATH)
 
 analyze:
-	$(BUILDSYSTEMDIR)/xcode_analyzer.py
+	BuildSystem/common/xcode_analyzer.py
 
 $(TESTPATH): $(LIBPATH) $(TESTDIR) $(TESTOBJS)
 	$(CXX) $(LDFLAGS) -L$(BUILDDIR) $(TESTOBJS) -l $(LIBNAME) $(LIBS) $(TESTLIBS) -o $@
@@ -206,7 +205,7 @@ $(TESTDIR)/%.o: Tests/%.cpp $(TESTHDRS)
 # Build the documentation.
 docs:
 	-rm -rf docs
-	(cat BuildSystem/Doxyfile ; \
+	(cat BuildSystem/common/Doxyfile ; \
 	 echo "PROJECT_NAME=$(PROJECT_NAME)" ; \
 	 echo "PROJECT_NUMBER=v$(VERSION)" ; \
 	 echo "PROJECT_BRIEF=\"$(PROJECT_TITLE)\"") \
