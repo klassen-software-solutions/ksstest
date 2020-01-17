@@ -205,7 +205,7 @@ $(TESTDIR)/%.o: Tests/%.cpp $(TESTHDRS)
 # Build the documentation.
 docs:
 	-rm -rf docs
-	(cat BuildSystem/common/Doxyfile ; \
+	(cat BuildSystem/c++/Doxyfile ; \
 	 echo "PROJECT_NAME=$(PROJECT_NAME)" ; \
 	 echo "PROJECT_NUMBER=v$(VERSION)" ; \
 	 echo "PROJECT_BRIEF=\"$(PROJECT_TITLE)\"") \
