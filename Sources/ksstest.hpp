@@ -25,7 +25,7 @@
 #include <typeinfo>
 #include <utility>
 
-namespace kss { namespace test {
+namespace kss::test {
 
     namespace _private {
         void success(void) noexcept;
@@ -546,6 +546,6 @@ namespace kss { namespace test {
     class MustNotBeParallel {
     };
 
-}}
+}
 
 #endif /* ksstest_hpp */
