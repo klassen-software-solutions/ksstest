@@ -13,6 +13,7 @@
 #include <condition_variable>
 #include <ctime>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <future>
 #include <iomanip>
@@ -36,6 +37,7 @@
 
 using namespace std;
 using namespace std::chrono;
+using namespace std::filesystem;
 using namespace kss::test;
 
 
@@ -309,7 +311,9 @@ namespace { namespace json {
                 return strm;
             }
 
-            static ostream& write_with_indent(ostream& strm, const node& json, int indentLevel,
+            static ostream& write_with_indent(ostream& strm,
+                                              const node& json,
+                                              int indentLevel,
                                               bool needTrailingComma)
             {
                 indent(strm, indentLevel);
@@ -336,7 +340,11 @@ namespace { namespace json {
                 return strm;
             }
 
-            static ostream& write_child_in_array(ostream& strm, int indentLevel, array_child_t& child, bool isLastChild) {
+            static ostream& write_child_in_array(ostream& strm,
+                                                 int indentLevel,
+                                                 array_child_t& child,
+                                                 bool isLastChild)
+            {
                 indent(strm, indentLevel, 2);
                 strm << '"' << child.first << "\": [" << endl;
 
@@ -463,21 +471,10 @@ namespace {
 
 namespace {
 
-    // Basename of a path.
-    string basename(const string &path) {
-        const auto dirSepPos = path.find_last_of('/');
-        if (dirSepPos == string::npos) {
-            return path;
-        }
-        else {
-            return path.substr(dirSepPos+1);
-        }
-    }
-
     // Test for subclasses.
     template <class T, class Base>
     T* as(Base* obj) noexcept {
-        if (!obj) return nullptr;
+        if (!obj) { return nullptr; }
         return dynamic_cast<T*>(obj);
     }
 
@@ -676,16 +673,18 @@ times that KSS_ASSERT failed) in all the test cases in all the test suites.
     }
 
     // Write a file, throwing an exception if there is a problem.
-    inline void throwProcessingError(const string& filename, const string& what_arg) {
+    [[noreturn]] inline void throwProcessingError(const string& filename,
+                                                  const string& what_arg)
+    {
         throw system_error(errno, system_category(), what_arg + " " + filename);
     }
 
     void write_file(const string& filename, function<void (ofstream&)> fn) {
         errno = 0;
         ofstream strm(filename);
-        if (!strm.is_open()) throwProcessingError(filename, "Failed to open");
+        if (!strm.is_open()) { throwProcessingError(filename, "Failed to open"); }
         fn(strm);
-        if (strm.bad()) throwProcessingError(filename, "Failed while writing");
+        if (strm.bad()) { throwProcessingError(filename, "Failed while writing"); }
     }
 
     // Return the time that fn took to run.
@@ -1249,11 +1248,11 @@ namespace {
 }
 
 
-namespace kss { namespace test {
+namespace kss::test {
 
-    int run(const string& testRunName, int argc, const char *const *argv) {
+    int run(string_view testRunName, int argc, const char *const *argv) {
         auto* suites = testSuites();
-        reportSummary.programName = basename(argv[0]);
+        reportSummary.programName = path(argv[0]).filename();
         reportSummary.nameOfTestRun = testRunName;
         reportSummary.nameOfHost = hostname();
         if (parseCommandLine(argc, argv)) {
@@ -1301,7 +1300,7 @@ namespace kss { namespace test {
     bool isVerbose() noexcept {
         return isVerboseMode;
     }
-}}
+}
 
 
 // MARK: Assertions
@@ -1468,7 +1467,7 @@ namespace kss { namespace test { namespace _private {
     void failure(const char* expr, const char* filename, unsigned int line) noexcept {
         assert(currentTest != nullptr);
         ++currentTest->assertions;
-        auto f = make_pair(basename(filename) + ": " + to_string(line) + ", " + expr,
+        auto f = make_pair(string(path(filename).filename()) + ": " + to_string(line) + ", " + expr,
                            currentTest->mostRecentDetails);
         if (f.first.size() > maxFailureReportLineLength) {
             f.first.resize(maxFailureReportLineLength);

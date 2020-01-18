@@ -52,7 +52,7 @@ namespace kss::test {
      @throws std::invalid_argument if any of the arguments are missing or wrong.
      @throws std::system_error or std::runtime_exception if something goes wrong with the run itself.
      */
-    int run(const std::string& testRunName, int argc, const char* const* argv);
+    int run(std::string_view testRunName, int argc, const char* const* argv);
 
     /*!
      Call this within a test if you want to skip it. Typically this would be the first
@@ -482,7 +482,7 @@ namespace kss::test {
         void setTestCaseContext(test_case_context_t ctx) noexcept;
 
     private:
-        friend int run(const std::string& testRunName, int argc, const char* const* argv);
+        friend int run(std::string_view testRunName, int argc, const char* const* argv);
 
         struct Impl;
         std::unique_ptr<Impl> _impl;
@@ -548,4 +548,4 @@ namespace kss::test {
 
 }
 
-#endif /* ksstest_hpp */
+#endif
