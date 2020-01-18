@@ -48,7 +48,7 @@ ifeq ($(wildcard Dependancies/prereqs.json),)
 endif
 
 CFLAGS := $(CFLAGS) -I$(BUILDDIR)/include
-CXXFLAGS := $(CXXFLAGS) -I$(BUILDDIR)/include -std=c++14 -Wno-unknown-pragmas
+CXXFLAGS := $(CXXFLAGS) -I$(BUILDDIR)/include -std=c++17 -Wno-unknown-pragmas
 
 KSS_INSTALL_PREFIX ?= /opt/$(PREFIX)
 CFLAGS := $(CFLAGS) -I$(KSS_INSTALL_PREFIX)/include
