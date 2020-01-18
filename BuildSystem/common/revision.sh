@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-newver=`git describe --tags --dirty=M 2>/dev/null`
-if [ $? -ne 0 ]; then
+if git describe --tags --dirty=M >/dev/null 2>/dev/null; then
+    newver=$(git describe --tags --dirty=M 2>/dev/null)
+else
     newver="0.0.0"
 fi
 
@@ -11,7 +12,7 @@ if [ x"$REVISION" != "x" ]; then
 fi
 
 if [ -f REVISION ]; then
-    oldver=`cat REVISION`
+    oldver=$(cat REVISION)
     if [ "$oldver" != "$newver" ]; then
         echo "$newver" > REVISION
     fi

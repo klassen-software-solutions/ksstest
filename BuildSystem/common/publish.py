@@ -49,54 +49,54 @@ def _count_files(path: str) -> int:
     logging.debug("Found %d files in %d directories", num_files, num_dirs)
     return num_files
 
-def _backup(ftp, dir: str) -> bool:
-    backupdir = "%s.bak" % dir
-    logging.debug("Backing up %s to %s", dir, backupdir)
+def _backup(ftp, dirname: str) -> bool:
+    backupdir = "%s.bak" % dirname
+    logging.debug("Backing up %s to %s", dirname, backupdir)
     _remove_path(ftp, backupdir)
     try:
-        ftp.rename(dir, backupdir)
+        ftp.rename(dirname, backupdir)
     except ftplib.error_perm as ex:
         logging.debug("..could not rename, ex=%s", ex)
 
-def _remove_path(ftp, dir: str):
-    if _dir_exists(ftp, dir):
-        logging.debug("Removing existing directory %s", dir)
-        _remove_dir(ftp, ".", dir)
+def _remove_path(ftp, dirname: str):
+    if _dir_exists(ftp, dirname):
+        logging.debug("Removing existing directory %s", dirname)
+        _remove_dir(ftp, ".", dirname)
 
-def _dir_exists(ftp, dir: str) -> bool:
+def _dir_exists(ftp, dirname: str) -> bool:
     generator = ftp.mlsd()
     try:
         while True:
             (name, details) = next(generator)
-            if name == dir and details['type'] == 'dir':
+            if name == dirname and details['type'] == 'dir':
                 return True
     except StopIteration:
         pass
     return False
 
-def _remove_dir(ftp, path: str, dir: str):
-    generator = ftp.mlsd(path + "/" + dir)
+def _remove_dir(ftp, path: str, dirname: str):
+    generator = ftp.mlsd(path + "/" + dirname)
     try:
         while True:
             (name, details) = next(generator)
             if details['type'] == 'file':
-                logging.debug("  %s/%s/%s" % (path, dir, name))
-                ftp.delete("%s/%s/%s" % (path, dir, name))
+                logging.debug("  %s/%s/%s", path, dirname, name)
+                ftp.delete("%s/%s/%s" % (path, dirname, name))
             elif details['type'] == 'dir':
-                _remove_dir(ftp, path + "/" + dir, name)
+                _remove_dir(ftp, path + "/" + dirname, name)
             else:
-                logging.debug("  %s/%s/%s (skipping)" % (path, dir, name))
+                logging.debug("  %s/%s/%s (skipping)", path, dirname, name)
     except StopIteration:
         pass
-    logging.debug("  %s/%s" % (path, dir))
-    ftp.rmd("%s/%s" % (path, dir))
+    logging.debug("  %s/%s", path, dirname)
+    ftp.rmd("%s/%s" % (path, dirname))
 
 def _upload(ftp, file_system_root: str, ftp_server_root: str, filename: str):
     file_system_filename = '%s/%s' % (file_system_root, filename)
     ftp_server_filename = '%s/%s' % (ftp_server_root, filename)
     logging.debug("Uploading %s to %s", file_system_filename, ftp_server_filename)
-    with open(file_system_filename, 'rb') as fp:
-        ftp.storbinary('STOR %s' % ftp_server_filename, fp)
+    with open(file_system_filename, 'rb') as infile:
+        ftp.storbinary('STOR %s' % ftp_server_filename, infile)
 
 def _display_percent_done(num_copied: int, total_num_files: int, prev_percent_done: int) -> int:
     perc_done = int(round(num_copied / total_num_files * 100))
@@ -119,24 +119,26 @@ def _copy_files(ftp, path: str, total_num_files: int):
             continue
         rootdir = _remove_prefix(root, prefix)
         for subdir in dirs:
-            dir = "%s/%s" % (rootdir, subdir)
-            logging.debug("Creating dir %s", dir)
-            ftp.mkd(dir)
+            dirname = "%s/%s" % (rootdir, subdir)
+            logging.debug("Creating dir %s", dirname)
+            ftp.mkd(dirname)
         for file in files:
             _upload(ftp, root, rootdir, file)
             num_copied += 1
-            prev_percent_done = _display_percent_done(num_copied, total_num_files, prev_percent_done)
+            prev_percent_done = _display_percent_done(num_copied,
+                                                      total_num_files,
+                                                      prev_percent_done)
 
 def _publish(url, args):
     published_dir = os.path.basename(args.path)
     if published_dir == '':
         raise RuntimeError("Could not determine the basename of %s" % args.path)
-    logging.info("Publishing %s to %s as %s" % (args.path, args.url, published_dir))
+    logging.info("Publishing %s to %s as %s", args.path, args.url, published_dir)
     ftp = ftplib.FTP_TLS(host=url.netloc,
                          user='' if args.user is None else args.user,
                          passwd='' if args.password is None else args.password)
     ftp.cwd(url.path)
-    logging.debug("pwd (on server): %s" % ftp.pwd())
+    logging.debug("pwd (on server): %s", ftp.pwd())
     num_files = _count_files(args.path)
     _copy_files(ftp, args.path, num_files)
 

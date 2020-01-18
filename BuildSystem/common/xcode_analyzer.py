@@ -28,18 +28,18 @@ def _main():
     os_name = _get_run('uname -s')
     hardware_name = _get_run('uname -m')
     arch = "%s-%s" % (os_name, hardware_name)
-    buildDir = ".build/%s" % arch
-    installPrefix = os.environ.get('KSS_INSTALL_PREFIX', '/opt/kss')
+    build_dir = ".build/%s" % arch
+    install_prefix = os.environ.get('KSS_INSTALL_PREFIX', '/opt/kss')
     logging.info("ARCH=%s", arch)
-    logging.info("INSTALL_PREFIX=%s", installPrefix)
-    logging.info("BUILDDIR=%s", buildDir)
+    logging.info("INSTALL_PREFIX=%s", install_prefix)
+    logging.info("BUILDDIR=%s", build_dir)
 
     warning_count = 0
     analyze_failed = False
     _run("rm -rf Build")
     command = "xcodebuild -alltargets -configuration Debug -quiet analyze"
-    command += ' HEADER_SEARCH_PATHS="%s/include %s/include"' % (installPrefix, buildDir)
-    command += ' LIBRARY_SEARCH_PATHS="%s/lib"' % installPrefix
+    command += ' HEADER_SEARCH_PATHS="%s/include %s/include"' % (install_prefix, build_dir)
+    command += ' LIBRARY_SEARCH_PATHS="%s/lib"' % install_prefix
     for line in _process(command):
         line = line.decode('utf-8').rstrip()
         print("%s" % line)

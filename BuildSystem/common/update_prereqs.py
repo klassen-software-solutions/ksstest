@@ -6,12 +6,13 @@
 import json
 import logging
 import os
-import requests
 import subprocess
 import sys
 import urllib.parse
-
 from typing import Dict, List
+
+import requests
+
 
 def _read_prereqs_file() -> List:
     try:
@@ -75,8 +76,8 @@ def _download(url: str, filename: str):
     resp = requests.get(url)
     if not _is_ok(resp):
         raise RuntimeError("Bad response from %s: %d" % (url, resp.status_code))
-    with open(filename, 'wb') as fp:
-        fp.write(resp.content)
+    with open(filename, 'wb') as outfile:
+        outfile.write(resp.content)
 
 def _extract(filename: str) -> str:
     dirname = filename
