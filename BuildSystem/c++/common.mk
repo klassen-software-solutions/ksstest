@@ -16,19 +16,17 @@ HEADERDIR := $(BUILDDIR)/include/$(PREFIX)/$(PACKAGEBASENAME)
 LIBDIR := $(BUILDDIR)/lib
 LIBS := $(LIBS) $($(ARCH)_LIBS)
 
+CC := clang
+CXX := clang++
 ifeq ($(OS),Darwin)
 	SOEXT := .$(VERSION).dylib
 	SOEXT_SHORT := .dylib
 	LDPATHEXPR := DYLD_LIBRARY_PATH="$(LIBDIR)"
-	CC := clang
-	CXX := clang++
 else
 	SOEXT := .so.$(VERSION)
 	SOEXT_SHORT := .so
 	LIBS := $(LIBS) -lpthread
 	LDPATHEXPR := LD_LIBRARY_PATH="$(LIBDIR)"
-	CC := gcc
-	CXX := g++
 	CFLAGS := $(CFLAGS) -fPIC 
 endif
 
