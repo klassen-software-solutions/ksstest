@@ -20,7 +20,7 @@ make_pair("short delay returns false", [] {
 }),
 make_pair("long delay terminates", [] {
     KSS_ASSERT(terminates([] {
-        completesWithin(10ms, [] { this_thread::sleep_for(100ms); });
+        (void) completesWithin(10ms, [] { this_thread::sleep_for(100ms); });
     }));
 })
 });
