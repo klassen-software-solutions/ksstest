@@ -52,7 +52,6 @@
 		AA4D19C321F3B63B002A7FBB /* ksstest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ksstest.cpp; sourceTree = "<group>"; };
 		AA6C3BBF23AE98FF00ACE3C2 /* bug35.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bug35.cpp; sourceTree = "<group>"; };
 		AA6C3BD023B127DA00ACE3C2 /* .gitattributes */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitattributes; sourceTree = "<group>"; };
-		AA7548D020C98866006581EA /* BuildSystem.old */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BuildSystem.old; sourceTree = "<group>"; };
 		AA7548D320C999A1006581EA /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		AA7548D420C9BBCE006581EA /* version.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
 		AA7548D520C9BBCE006581EA /* version.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = version.hpp; sourceTree = "<group>"; };
@@ -120,7 +119,6 @@
 				AA16FA3D218A51AC0059E8DB /* Top Level */,
 				AAFF8CB5238DB1F40077628E /* .github */,
 				AA2386DB26D946A00003C0E5 /* BuildSystem */,
-				AA7548D020C98866006581EA /* BuildSystem.old */,
 				AAA40F191F3CAC04005D181B /* Sources */,
 				AAD09DFA2075C98700B527FB /* Tests */,
 				AAA40F131F3CAAF2005D181B /* Products */,
