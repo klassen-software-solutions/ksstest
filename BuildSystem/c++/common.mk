@@ -47,6 +47,7 @@ endif
 
 CFLAGS := $(CFLAGS) -I$(BUILDDIR)/include
 CXXFLAGS := $(CXXFLAGS) -I$(BUILDDIR)/include -std=c++17 -Wno-unknown-pragmas
+LDFLAGS := $(LDFLAGS) -L$(LIBDIR)
 
 KSS_INSTALL_PREFIX ?= /opt/$(PREFIX)
 CFLAGS := $(CFLAGS) -I$(KSS_INSTALL_PREFIX)/include
@@ -54,7 +55,6 @@ LDFLAGS := $(LDFLAGS) -L$(KSS_INSTALL_PREFIX)/lib
 LDPATHEXPR := $(LDPATHEXPR):$(KSS_INSTALL_PREFIX)/lib
 
 CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
-LDFLAGS := $(LDFLAGS) -L$(LIBDIR)
 
 -include $(PROJECTDIR)/config.local
 -include $(PROJECTDIR)/config.defs
