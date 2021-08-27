@@ -20,5 +20,6 @@ jobs:
         X_USER: ${{ secrets.API_PUBLISHER_USER }}
         X_PW: ${{ secrets.API_PUBLISHER_PASSWORD }}
       run: |
+        git submodule update --init --recursive
         make docs
         BuildSystem/common/publish.py --url "$X_URL" --user "$X_USER" --password "$X_PW" docs
