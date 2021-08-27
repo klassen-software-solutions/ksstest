@@ -52,7 +52,7 @@ namespace kss::test {
      @throws std::invalid_argument if any of the arguments are missing or wrong.
      @throws std::system_error or std::runtime_exception if something goes wrong with the run itself.
      */
-    int run(std::string_view testRunName, int argc, const char* const* argv);
+    [[nodiscard]] int run(std::string_view testRunName, int argc, const char* const* argv);
 
     /*!
      Call this within a test if you want to skip it. Typically this would be the first
@@ -77,7 +77,7 @@ namespace kss::test {
 
      If called before run(), this will return false.
      */
-    bool isQuiet() noexcept;
+    [[nodiscard]] bool isQuiet() noexcept;
 
     /*!
      After run() has begun this will return true if we are running in verbose mode
@@ -86,7 +86,7 @@ namespace kss::test {
 
      If called before run(), this will return false.
      */
-    bool isVerbose() noexcept;
+    [[nodiscard]] bool isVerbose() noexcept;
 
 
     // MARK: Assertions
@@ -125,7 +125,7 @@ namespace kss::test {
      KSS_ASSERT(isTrue([]{ return true; }));
      @endcode
      */
-    inline bool isTrue(const std::function<bool()>& fn) { return fn(); }
+    [[nodiscard]] inline bool isTrue(const std::function<bool()>& fn) { return fn(); }
 
     /*!
      Returns true if the lambda returns false.
@@ -134,7 +134,7 @@ namespace kss::test {
      KSS_ASSERT(isFalse([]{ return false; }));
      @endcode
      */
-    inline bool isFalse(const std::function<bool()>& fn) { return !fn(); }
+    [[nodiscard]] inline bool isFalse(const std::function<bool()>& fn) { return !fn(); }
 
     /*!
      Returns true if the lambda returns a value that is equal to a.
@@ -144,7 +144,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isEqualTo(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] bool isEqualTo(const T& a, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (res == a);
         if (!ret) {
@@ -163,7 +163,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isNotEqualTo(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] bool isNotEqualTo(const T& a, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (res != a);
         if (!ret) {
@@ -182,7 +182,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isCloseTo(const T& a, const T& tolerance, const std::function<T()>& fn) {
+    [[nodiscard]] bool isCloseTo(const T& a, const T& tolerance, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (std::abs(res - a) <= tolerance);
         if (!ret) {
@@ -194,7 +194,7 @@ namespace kss::test {
     }
 
     template <class T>
-    inline bool isCloseTo(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] inline bool isCloseTo(const T& a, const std::function<T()>& fn) {
         return isCloseTo<T>(a, std::numeric_limits<T>::epsilon(), fn);
     }
 
@@ -206,7 +206,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isNotCloseTo(const T& a, const T& tolerance, const std::function<T()>& fn) {
+    [[nodiscard]] bool isNotCloseTo(const T& a, const T& tolerance, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (std::abs(res - a) > tolerance);
         if (!ret) {
@@ -218,7 +218,7 @@ namespace kss::test {
     }
 
     template <class T>
-    inline bool isNotCloseTo(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] inline bool isNotCloseTo(const T& a, const std::function<T()>& fn) {
         return isNotCloseTo<T>(a, std::numeric_limits<T>::epsilon(), fn);
     }
 
@@ -230,7 +230,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isLessThan(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] bool isLessThan(const T& a, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (res < a);
         if (!ret) {
@@ -249,7 +249,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isLessThanOrEqualTo(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] bool isLessThanOrEqualTo(const T& a, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (res <= a);
         if (!ret) {
@@ -268,7 +268,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isGreaterThan(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] bool isGreaterThan(const T& a, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (res > a);
         if (!ret) {
@@ -287,7 +287,7 @@ namespace kss::test {
      @endcode
      */
     template <class T>
-    bool isGreaterThanOrEqualTo(const T& a, const std::function<T()>& fn) {
+    [[nodiscard]] bool isGreaterThanOrEqualTo(const T& a, const std::function<T()>& fn) {
         const auto res = fn();
         bool ret = (res >= a);
         if (!ret) {
@@ -311,7 +311,7 @@ namespace kss::test {
      @endcode
      */
     template <class Exception>
-    bool throwsException(const std::function<void()>& fn) {
+    [[nodiscard]] bool throwsException(const std::function<void()>& fn) {
         bool caughtCorrectException = false;
         try {
             fn();
@@ -337,8 +337,8 @@ namespace kss::test {
      }));
      @endcode
      */
-    bool throwsSystemErrorWithCategory(const std::error_category& cat,
-                                       const std::function<void()>& fn);
+    [[nodiscard]] bool throwsSystemErrorWithCategory(const std::error_category& cat,
+                                                     const std::function<void()>& fn);
 
     /*!
      Returns true if the lambda throws a system_error with the given error code. Note
@@ -353,8 +353,8 @@ namespace kss::test {
      }));
      @endcode
      */
-    bool throwsSystemErrorWithCode(const std::error_code& code,
-                                   const std::function<void()>& fn);
+    [[nodiscard]] bool throwsSystemErrorWithCode(const std::error_code& code,
+                                                 const std::function<void()>& fn);
 
     /*!
      Returns true if the lambda does not throw any exception.
@@ -366,7 +366,7 @@ namespace kss::test {
      KSS_ASSERT(doesNotThrowException([]{ doSomeWork(); }));
      @endcode
      */
-    bool doesNotThrowException(const std::function<void()>& fn);
+    [[nodiscard]] bool doesNotThrowException(const std::function<void()>& fn);
 
     /*!
      Returns true if the lambda completes successfuly within the given duration. Note
@@ -381,7 +381,7 @@ namespace kss::test {
      @endcode
      */
     template <class Duration>
-    inline bool completesWithin(const Duration& d, const std::function<void()>& fn) {
+    [[nodiscard]] inline bool completesWithin(const Duration& d, const std::function<void()>& fn) {
         using std::chrono::duration_cast;
         using std::chrono::duration;
         return _private::completesWithinSec(duration_cast<duration<double>>(d), fn);
@@ -398,7 +398,7 @@ namespace kss::test {
      KSS_ASSERT(terminates([]{ cannot_throw() }));
      @endcode
      */
-    bool terminates(const std::function<void()>& fn);
+    [[nodiscard]] bool terminates(const std::function<void()>& fn);
 
 
     // MARK: TestSuite
@@ -435,20 +435,20 @@ namespace kss::test {
         /*!
          Accessors
          */
-        const std::string& name() const noexcept;
+        [[nodiscard]] const std::string& name() const noexcept;
 
         /*!
          Obtain the test suite from the current test case. This is only valid if called
          from within a test case and will fail an assertion if that is not the case.
          */
-        static TestSuite& get() noexcept;
+        [[nodiscard]] static TestSuite& get() noexcept;
 
         /*!
          Obtain the context of the current test case. This must be called in the thread
          where the test case itself is running and will fail an assertion if that is
          not the case.
          */
-        test_case_context_t testCaseContext() const noexcept;
+        [[nodiscard]] test_case_context_t testCaseContext() const noexcept;
 
         /*!
          Set the test case context into the current thread. The ctx value must be
