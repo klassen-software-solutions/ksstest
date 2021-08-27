@@ -21,7 +21,7 @@ Features:
 * JSON output compatible with that of JUnit
 * XML output compatible with that of gUnit
 
-[API Documentation](http://www.kss.cc/apis/ksstest/docs/index.html) 
+[API Documentation](https://klassensoftwaresolutions.ca/apis/ksstest/docs/index.html) 
 
 
 ## What has changed in V6?
