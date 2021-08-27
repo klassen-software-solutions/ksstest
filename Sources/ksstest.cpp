@@ -1369,10 +1369,10 @@ namespace kss { namespace test {
         sig_t oldHandler = signal(SIGCHLD, my_signal_handler);
 
         // In the child process we set a terminate handler that will exit the process with a 0.
-        pid_t pid = fork();
-        if (pid == 0) {
-            for (int i = 1; i <= 255; ++i)
+        if (pid_t pid = fork(); pid == 0) {
+            for (int i = 1; i <= 255; ++i) {
                 signal(i, my_signal_handler);
+            }
             set_terminate(my_terminate_handler);
             try {
                 fn();
@@ -1508,7 +1508,7 @@ namespace kss { namespace test { namespace _private {
         if (!ret) {
             _private::setFailureDetails("actual duration was " + to_string(dur.count()) + "s");
         }
-        return (dur <= d);
+        return ret;
     }
 
     void setFailureDetails(const string& d) {
